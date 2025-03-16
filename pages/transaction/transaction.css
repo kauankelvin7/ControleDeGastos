@@ -1,0 +1,191 @@
+/* Corpo */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+/* Cabeçalho - Botão Sair */
+header {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+}
+
+/* Main Content */
+main {
+    width: 100%;
+    max-width: 630px; /* Largura máxima para o formulário */
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    padding: 15px;
+    box-sizing: border-box;
+}
+
+/* Título */
+h1 {
+    text-align: center;
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 20px; /* Espaçamento abaixo do título */
+    color: #2dd36f;
+}
+
+/* Formulário */
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px; /* Espaçamento entre os campos */
+}
+
+/* Grupo de Rádio (Receita / Despesa) */
+.radio-group {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+/* Form Group */
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+}
+
+label {
+    font-weight: bold;
+    color: #333;
+    font-size: 14px;
+}
+
+/* Inputs e selects */
+input,
+select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 14px;
+    box-sizing: border-box;
+    outline: none;
+    transition: border-color 0.3s;
+}
+
+/* Foco nos inputs */
+input:focus,
+select:focus {
+    border-color: #2dd36f;
+}
+
+/* Estilo para os radio buttons */
+input[type="radio"] {
+    display: none; /* Esconde o círculo de rádio padrão */
+}
+
+/* Estilo para os labels (botões de rádio) */
+.radio-group label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 20px;
+    border: 2px solid #ccc;
+    border-radius: 25px;
+    font-size: 14px;
+    color: #333;
+    cursor: pointer;
+    transition: background-color 0.3s, border-color 0.3s;
+    gap: 50px;
+}
+
+/* Estilo quando o botão é selecionado */
+input[type="radio"]:checked + label {
+    background-color: #2dd36f;
+    border-color: #1eaa58;
+    color: white;
+}
+
+/* Efeito hover */
+.radio-group label:hover {
+    background-color: #f2f2f2;
+    border-color: #bbb;
+}
+
+/* Estilo para os ícones de rádio customizados */
+.radio-group label:before {
+    content: '';
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 2px solid #ccc;
+    margin-right: 10px;
+    transition: border-color 0.3s, background-color 0.3s;
+}
+
+/* Estilo quando o botão é selecionado (círculo) */
+input[type="radio"]:checked + label:before {
+    background-color: #2dd36f;
+    border-color: #1eaa58;
+}
+
+/* Botões */
+button {
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    text-align: center;
+    width: 100%;
+}
+
+button.solid {
+    background-color: #2dd36f;
+    color: white;
+}
+
+button.solid:hover {
+    background-color: #1eaa58;
+}
+
+button.solid-two {
+    background-color: #f2f2f2;
+    color: #333;
+}
+
+button.solid-two:hover {
+    background-color: #e5e5e5;
+}
+
+/* Efeito de hover nos campos de input */
+input[type="date"]:hover,
+select:hover {
+    border-color: #2dd36f; /* Altera a cor da borda ao passar o mouse */
+    background-color: #eaf5e6; /* Adiciona fundo claro */
+    transition: all 0.3s ease; /* Transição suave */
+}
+
+/* Efeito de hover específico para o ícone de calendário */
+input[type="date"]:hover::-webkit-calendar-picker-indicator {
+    background-color: #2dd36f; /* Muda a cor do ícone */
+    border-radius: 50%; /* Torna o ícone arredondado */
+    padding: 5px; /* Dá um pouco de espaço ao redor do ícone */
+}
+
+/* Responsividade */
+@media (max-width: 480px) {
+    main {
+        padding: 15px;
+    }
+
+    button {
+        font-size: 14px;
+    }
+
+}
