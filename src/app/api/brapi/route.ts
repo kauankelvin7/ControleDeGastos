@@ -16,19 +16,31 @@ export async function GET(request: Request) {
   try {
     // Supports comma-separated tickers for batch quotes (e.g. MXRF11,PETR4)
     const tickerList = ticker.toUpperCase().split(',').map(t => t.trim()).join(',');
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8000); // 8s timeout
+
     const res = await fetch(
-      `https://brapi.dev/api/quote/${tickerList}?token=${BRAPI_TOKEN}&modules=dividends`,
-      { next: { revalidate: 300 } } // Cache por 5 minutos nativo do Next.js
+      `https://brapi.dev/api/quote/${tickerList}?token=${BRAPI_TOKEN}`,
+      { signal: controller.signal }
     );
 
+    clearTimeout(timeout);
+
     if (!res.ok) {
-      throw new Error(`Brapi HTTP ${res.status}`);
+      console.error(`[API/brapi] HTTP ${res.status} for tickers: ${tickerList}`);
+      return NextResponse.json({ error: `Brapi HTTP ${res.status}`, results: [] }, { status: 200 });
     }
 
     const json = await res.json();
-    return NextResponse.json(json);
+    
+    // Return with Cache-Control header for CDN caching (5 min)
+    return NextResponse.json(json, {
+      headers: { 'Cache-Control': 's-maxage=300, stale-while-revalidate=60' },
+    });
   } catch (error: any) {
-    console.error("[API] Erro ao buscar cotação:", error.message);
-    return NextResponse.json({ error: 'Failed to fetch quote' }, { status: 500 });
+    console.error("[API/brapi] Erro:", error.message);
+    // Always return a valid JSON so the client doesn't crash
+    return NextResponse.json({ error: error.message, results: [] }, { status: 200 });
   }
 }
