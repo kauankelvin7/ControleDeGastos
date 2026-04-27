@@ -3,15 +3,18 @@
 import { useState, useEffect } from "react";
 import { useReserva } from "@/hooks/useFirebaseData";
 import { formatBRL, maskCurrency, parseCurrency } from "@/lib/utils";
-import { ShieldAlert, Plus, History } from "lucide-react";
-import { doc, getDoc, addDoc, collection } from "firebase/firestore";
+import { ShieldAlert, Plus, History, Pencil, Trash2, X } from "lucide-react";
+import { doc, getDoc, addDoc, updateDoc, deleteDoc, collection } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function ReservaPage() {
   const { data: historico, isLoading } = useReserva();
+  const queryClient = useQueryClient();
   const [meta, setMeta] = useState(15000);
   const [loadingAdd, setLoadingAdd] = useState(false);
   const [valorAdd, setValorAdd] = useState("");
+  const [editId, setEditId] = useState<string | null>(null);
 
   const totalReserva = historico?.reduce((acc: number, cur: any) => acc + (cur.valor || 0), 0) || 0;
   const porcentagem = Math.min((totalReserva / meta) * 100, 100);
@@ -33,17 +36,48 @@ export default function ReservaPage() {
     
     setLoadingAdd(true);
     try {
-      await addDoc(collection(db, `users/${auth.currentUser.uid}/reserva`), {
-        valor: parseCurrency(valorAdd),
-        data: new Date().toISOString(),
-        descricao: "Aporte na Reserva",
-      });
+      if (editId) {
+        await updateDoc(doc(db, `users/${auth.currentUser.uid}/reserva`, editId), {
+          valor: parseCurrency(valorAdd),
+        });
+      } else {
+        await addDoc(collection(db, `users/${auth.currentUser.uid}/reserva`), {
+          valor: parseCurrency(valorAdd),
+          data: new Date().toISOString(),
+          descricao: "Aporte na Reserva",
+        });
+      }
+      await queryClient.invalidateQueries({ queryKey: ["reserva"] });
       setValorAdd("");
+      setEditId(null);
     } catch (err) {
       console.error(err);
     } finally {
       setLoadingAdd(false);
     }
+  };
+
+  const handleDeleteReserva = async (id: string) => {
+    if (!auth.currentUser || !confirm("Deseja realmente excluir este aporte da reserva?")) return;
+    try {
+      await deleteDoc(doc(db, `users/${auth.currentUser.uid}/reserva`, id));
+      await queryClient.invalidateQueries({ queryKey: ["reserva"] });
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleEditClick = (item: any) => {
+    setEditId(item.id);
+    const valorFormatado = (item.valor || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+    setValorAdd(maskCurrency(valorFormatado));
+    // Rola para o topo (formulário) suavemente se tiver no mobile
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleCancelEdit = () => {
+    setEditId(null);
+    setValorAdd("");
   };
 
   if (isLoading) {
@@ -103,10 +137,23 @@ export default function ReservaPage() {
           {/* Formulário de Aporte Rápido */}
           <form 
             onSubmit={handleAddReserva} 
-            className="bg-[linear-gradient(145deg,rgba(255,255,255,0.02)_0%,transparent_100%)] backdrop-blur-xl border border-white/5 rounded-2xl p-6 shadow-[0_8px_32px_rgba(0,0,0,0.1)] flex flex-col sm:flex-row gap-5 items-end transition-all hover:border-white/10"
+            className="bg-[linear-gradient(145deg,rgba(255,255,255,0.02)_0%,transparent_100%)] backdrop-blur-xl border border-white/5 rounded-2xl p-6 shadow-[0_8px_32px_rgba(0,0,0,0.1)] flex flex-col sm:flex-row gap-5 items-end transition-all hover:border-white/10 relative"
           >
+            {editId && (
+              <button
+                type="button"
+                onClick={handleCancelEdit}
+                className="absolute top-4 right-4 text-text-muted hover:text-white bg-black/20 p-2 rounded-full transition-colors"
+                title="Cancelar edição"
+              >
+                <X size={16} />
+              </button>
+            )}
+            
             <div className="flex-1 w-full">
-              <label className="text-[10px] font-display font-bold text-text-disabled uppercase tracking-widest px-1 mb-2 block">Adicionar à Reserva</label>
+              <label className="text-[10px] font-display font-bold text-text-disabled uppercase tracking-widest px-1 mb-2 block">
+                {editId ? "Editar Valor" : "Adicionar à Reserva"}
+              </label>
               <div className="relative">
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-text-disabled font-bold">R$</span>
                 <input
@@ -114,7 +161,7 @@ export default function ReservaPage() {
                   value={valorAdd}
                   onChange={(e) => setValorAdd(maskCurrency(e.target.value))}
                   placeholder="0,00"
-                  className="w-full bg-black/20 border border-white/10 shadow-inner rounded-xl pl-12 pr-4 py-4 text-text-primary font-mono text-lg focus:outline-none focus:border-brand-orange focus:bg-black/30 transition-all placeholder:text-text-disabled"
+                  className={`w-full bg-black/20 border shadow-inner rounded-xl pl-12 pr-4 py-4 text-text-primary font-mono text-lg focus:outline-none transition-all placeholder:text-text-disabled ${editId ? 'border-brand-amber focus:border-brand-orange focus:bg-black/30' : 'border-white/10 focus:border-brand-orange focus:bg-black/30'}`}
                 />
               </div>
             </div>
@@ -123,7 +170,7 @@ export default function ReservaPage() {
               disabled={loadingAdd || !valorAdd}
               className="w-full sm:w-auto bg-[linear-gradient(135deg,var(--orange),var(--amber))] shadow-[0_4px_16px_rgba(229,89,29,0.3),inset_0_1px_0_rgba(255,255,255,0.3)] hover:shadow-[0_6px_24px_rgba(229,89,29,0.4),inset_0_1px_0_rgba(255,255,255,0.4)] hover:-translate-y-0.5 active:scale-[0.98] disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none text-white font-bold py-4 px-8 rounded-xl flex items-center justify-center gap-2 transition-all duration-300 tracking-wide"
             >
-              {loadingAdd ? "Salvando..." : <><Plus size={20} /> Guardar</>}
+              {loadingAdd ? "Salvando..." : editId ? "Atualizar" : <><Plus size={20} /> Guardar</>}
             </button>
           </form>
         </div>
@@ -134,13 +181,31 @@ export default function ReservaPage() {
             <History size={18} className="text-text-disabled" /> Histórico
           </h3>
           <div className="space-y-4">
-            {historico?.slice(0, 8).map((item: any) => (
-              <div key={item.id} className="group flex justify-between items-center py-3 px-3 rounded-xl hover:bg-white/[0.03] transition-all border border-transparent hover:border-white/5">
-                <div>
+            {historico?.map((item: any) => (
+              <div key={item.id} className="group flex justify-between items-center py-3 px-3 rounded-xl hover:bg-white/[0.03] transition-all border border-transparent hover:border-white/5 relative overflow-hidden">
+                <div className="flex-1">
                   <div className="font-display font-bold text-sm text-text-primary group-hover:text-white transition-colors">{item.descricao}</div>
                   <div className="text-[10px] text-text-muted mt-0.5 uppercase tracking-wider font-semibold">{new Date(item.data).toLocaleDateString('pt-BR')}</div>
                 </div>
-                <div className="font-mono font-bold text-success drop-shadow-[0_0_8px_rgba(74,222,128,0.2)]">+{formatBRL(item.valor)}</div>
+                <div className="font-mono font-bold text-success drop-shadow-[0_0_8px_rgba(74,222,128,0.2)] flex-shrink-0 mr-2 transition-all group-hover:opacity-0 group-hover:-translate-x-4 absolute right-3">+{formatBRL(item.valor)}</div>
+                
+                {/* Ações */}
+                <div className="flex items-center gap-1 opacity-0 translate-x-4 group-hover:opacity-100 group-hover:translate-x-0 transition-all absolute right-2 bg-black/40 backdrop-blur-md p-1 rounded-lg">
+                  <button 
+                    onClick={() => handleEditClick(item)}
+                    className="p-1.5 rounded-md hover:bg-white/10 text-text-muted hover:text-white transition-all"
+                    title="Editar"
+                  >
+                    <Pencil size={14} />
+                  </button>
+                  <button 
+                    onClick={() => handleDeleteReserva(item.id)}
+                    className="p-1.5 rounded-md hover:bg-danger/20 text-text-muted hover:text-danger transition-all"
+                    title="Excluir"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
               </div>
             ))}
             {(!historico || historico.length === 0) && (

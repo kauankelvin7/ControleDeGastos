@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { useMetas } from "@/hooks/useFirebaseData";
 import { formatBRL, maskCurrency, parseCurrency } from "@/lib/utils";
-import { Target, Plus, Flag, Calendar } from "lucide-react";
-import { collection, addDoc } from "firebase/firestore";
+import { Target, Plus, Flag, Calendar, X } from "lucide-react";
+import { collection, addDoc, doc, updateDoc } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -17,6 +17,11 @@ export default function MetasPage() {
   const [titulo, setTitulo] = useState("");
   const [valorAlvo, setValorAlvo] = useState("");
   const [dataLimite, setDataLimite] = useState("");
+
+  // Aporte State
+  const [aporteMetaId, setAporteMetaId] = useState<string | null>(null);
+  const [valorAporte, setValorAporte] = useState("");
+  const [loadingAporte, setLoadingAporte] = useState(false);
 
   const handleAddMeta = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,6 +48,27 @@ export default function MetasPage() {
     }
   };
 
+  const handleAporteMeta = async (e: React.FormEvent, metaId: string, valorAtualAnterior: number) => {
+    e.preventDefault();
+    const valorAdicional = parseCurrency(valorAporte);
+    if (!auth.currentUser || valorAdicional <= 0) return;
+
+    setLoadingAporte(true);
+    try {
+      await updateDoc(doc(db, `users/${auth.currentUser.uid}/metas`, metaId), {
+        valorAtual: valorAtualAnterior + valorAdicional,
+      });
+      await queryClient.invalidateQueries({ queryKey: ["metas"] });
+      setAporteMetaId(null);
+      setValorAporte("");
+    } catch (err) {
+      console.error(err);
+      alert("Erro ao realizar aporte na meta.");
+    } finally {
+      setLoadingAporte(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -66,6 +92,8 @@ export default function MetasPage() {
         <div className="lg:col-span-2 space-y-5">
           {metas?.map((meta: any) => {
             const porcentagem = Math.min(((meta.valorAtual || 0) / (meta.valorAlvo || 1)) * 100, 100);
+            const isAportando = aporteMetaId === meta.id;
+
             return (
               <div 
                 key={meta.id} 
@@ -86,9 +114,22 @@ export default function MetasPage() {
                       </div>
                     )}
                   </div>
-                  <div className="text-right">
-                    <div className="text-text-disabled font-display text-[10px] uppercase tracking-widest mb-1 font-bold">Valor da Meta</div>
-                    <div className="font-mono text-xl text-text-primary drop-shadow-sm">{formatBRL(meta.valorAlvo)}</div>
+                  <div className="text-right flex flex-col items-end gap-2">
+                    <div>
+                      <div className="text-text-disabled font-display text-[10px] uppercase tracking-widest mb-1 font-bold">Valor da Meta</div>
+                      <div className="font-mono text-xl text-text-primary drop-shadow-sm">{formatBRL(meta.valorAlvo)}</div>
+                    </div>
+                    {!isAportando && (
+                      <button 
+                        onClick={() => {
+                          setAporteMetaId(meta.id);
+                          setValorAporte("");
+                        }}
+                        className="text-xs font-bold text-brand-orange hover:text-white bg-brand-orange/10 hover:bg-brand-orange/30 px-3 py-1.5 rounded-lg transition-all flex items-center gap-1 opacity-0 group-hover:opacity-100 translate-y-1 group-hover:translate-y-0"
+                      >
+                        <Plus size={12} /> Guardar
+                      </button>
+                    )}
                   </div>
                 </div>
 
@@ -116,6 +157,43 @@ export default function MetasPage() {
                     {formatBRL(meta.valorAtual || 0)}
                   </span>
                 </div>
+
+                {/* Área de Aporte (Expansível) */}
+                {isAportando && (
+                  <form 
+                    onSubmit={(e) => handleAporteMeta(e, meta.id, meta.valorAtual || 0)}
+                    className="mt-4 pt-4 border-t border-white/5 relative z-10 animate-in slide-in-from-top-4 fade-in duration-300"
+                  >
+                    <button
+                      type="button"
+                      onClick={() => setAporteMetaId(null)}
+                      className="absolute right-0 -top-8 text-text-muted hover:text-white p-1 rounded-md hover:bg-white/10 transition-colors"
+                    >
+                      <X size={16} />
+                    </button>
+                    <div className="flex items-center gap-3">
+                      <div className="relative flex-1">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-text-disabled font-bold text-xs">R$</span>
+                        <input
+                          type="text"
+                          required
+                          value={valorAporte}
+                          onChange={(e) => setValorAporte(maskCurrency(e.target.value))}
+                          placeholder="0,00"
+                          className="w-full bg-black/30 border border-brand-orange/30 shadow-inner rounded-xl pl-9 pr-3 py-2.5 text-text-primary font-mono text-sm focus:outline-none focus:border-brand-orange transition-all placeholder:text-text-disabled"
+                          autoFocus
+                        />
+                      </div>
+                      <button 
+                        type="submit"
+                        disabled={loadingAporte || !valorAporte}
+                        className="bg-[linear-gradient(135deg,var(--orange),var(--amber))] text-white font-bold px-4 py-2.5 rounded-xl text-sm hover:shadow-[0_4px_12px_rgba(229,89,29,0.3)] active:scale-95 disabled:opacity-50 transition-all whitespace-nowrap"
+                      >
+                        {loadingAporte ? "..." : "Adicionar"}
+                      </button>
+                    </div>
+                  </form>
+                )}
               </div>
             );
           })}

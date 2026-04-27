@@ -37,7 +37,7 @@ export default function Sidebar({ userProfile }: { userProfile?: any }) {
       {/* Primary Action Button */}
       <div className="px-5 mb-8">
         <Link 
-          href="/investimentos/novo" 
+          href="/lancamento" 
           className="w-full flex items-center justify-center gap-2 bg-[linear-gradient(135deg,var(--orange),var(--amber))] shadow-[0_4px_16px_rgba(229,89,29,0.3),inset_0_1px_0_rgba(255,255,255,0.3)] text-white py-3.5 rounded-2xl font-bold text-sm hover:shadow-[0_6px_24px_rgba(229,89,29,0.4),inset_0_1px_0_rgba(255,255,255,0.4)] hover:-translate-y-0.5 transition-all duration-300"
         >
           + Novo Lançamento
