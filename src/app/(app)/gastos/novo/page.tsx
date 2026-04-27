@@ -30,11 +30,12 @@ export default function NovoGastoPage() {
 
   useEffect(() => {
     if (editData) {
-      setDescricao(editData.descricao || "");
-      const valorFormatado = (editData.valor || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+      const data = editData as any;
+      setDescricao(data.descricao || "");
+      const valorFormatado = (data.valor || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
       setValor(maskCurrency(valorFormatado));
-      setCategoria(editData.categoria || CATEGORIAS[0]);
-      setData(editData.data?.split("T")[0] || new Date().toISOString().split("T")[0]);
+      setCategoria(data.categoria || CATEGORIAS[0]);
+      setData(data.data?.split("T")[0] || new Date().toISOString().split("T")[0]);
     }
   }, [editData]);
 

@@ -97,7 +97,7 @@ export function useGetDoc(subcollection: string, id: string | null) {
       if (!auth.currentUser || !id) return null;
       const d = await getDoc(doc(db, `users/${auth.currentUser.uid}/${subcollection}`, id));
       if (!d.exists()) return null;
-      return { id: d.id, ...d.data() };
+      return { id: d.id, ...d.data() } as any;
     },
     enabled: !!auth.currentUser && !!id,
   });

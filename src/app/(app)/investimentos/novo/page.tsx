@@ -27,13 +27,14 @@ export default function NovoInvestimentoPage() {
 
   useEffect(() => {
     if (editData) {
-      setAtivo(editData.ativo || "");
-      setQuantidade(String(editData.quantidade || "1"));
+      const data = editData as any;
+      setAtivo(data.ativo || "");
+      setQuantidade(String(data.quantidade || "1"));
       // Formata o valor numérico de volta para a máscara de string
-      const valorFormatado = (editData.valor || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+      const valorFormatado = (data.valor || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
       setValor(maskCurrency(valorFormatado));
-      setTipo(editData.tipo || "compra");
-      setData(editData.data?.split("T")[0] || new Date().toISOString().split("T")[0]);
+      setTipo(data.tipo || "compra");
+      setData(data.data?.split("T")[0] || new Date().toISOString().split("T")[0]);
     }
   }, [editData]);
 
