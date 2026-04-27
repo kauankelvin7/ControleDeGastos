@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>KiNance — Gastos</title>
+  <meta name="theme-color" content="#e5591d">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/reset.css">
+  <link rel="stylesheet" href="/css/tokens.css">
+  <link rel="stylesheet" href="/css/components.css">
+  <link rel="stylesheet" href="/css/animations.css">
+  <link rel="stylesheet" href="/css/sidebar.css">
+  <link rel="stylesheet" href="/css/pages/gastos.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <div class="app-layout">
+    <aside class="sidebar" id="sidebar" role="navigation"></aside>
+
+    <div class="app-main">
+      <header class="page-header">
+        <div>
+          <h1 class="page-title">Gastos</h1>
+          <p class="page-subtitle" id="mes-label">Mês atual</p>
+        </div>
+        <!-- Total destaque no header (desktop) -->
+        <div style="display:flex;align-items:center;gap:var(--space-3)">
+          <div style="text-align:right">
+            <div style="font-family:var(--font-display);font-size:var(--text-xs);color:var(--text-muted)">Total do mês</div>
+            <div style="font-family:var(--font-mono);font-size:var(--text-xl);font-weight:700;color:var(--danger)" id="total-mes">—</div>
+          </div>
+          <div class="chart-doughnut" style="width:56px;height:56px;flex-shrink:0">
+            <canvas id="chart-categorias" aria-label="Por categoria"></canvas>
+          </div>
+        </div>
+      </header>
+
+      <div class="app-content">
+        <div class="gastos-layout">
+
+          <!-- ── Form (esquerda) ──────────────────── -->
+          <div class="gastos-form-panel">
+            <div class="card card--danger" style="display:flex;flex-direction:column;gap:var(--space-4)">
+              <div class="section-title">Registrar gasto</div>
+              <form id="form-gasto" novalidate style="display:flex;flex-direction:column;gap:var(--space-4)">
+
+                <div class="form-group">
+                  <label class="input-label" for="gasto-valor">Valor (R$)</label>
+                  <input class="input" id="gasto-valor" type="number" placeholder="0,00" min="0.01" step="0.01" inputmode="decimal" aria-required="true" style="font-size:22px;font-weight:700;text-align:center;color:var(--danger)">
+                </div>
+
+                <div class="form-group">
+                  <label class="input-label">Categoria</label>
+                  <div class="categoria-grid" id="categoria-grid" role="group" aria-label="Selecionar categoria"></div>
+                  <input type="hidden" id="categoria-selecionada" aria-required="true">
+                </div>
+
+                <div class="form-group">
+                  <label class="input-label" for="gasto-desc">Descrição</label>
+                  <input class="input" id="gasto-desc" type="text" placeholder="ex: iFood" maxlength="80" aria-required="true">
+                </div>
+
+                <div class="form-group" style="flex-direction:row;align-items:center;gap:var(--space-3)">
+                  <input type="checkbox" id="gasto-recorrente" style="width:18px;height:18px;accent-color:var(--orange);flex-shrink:0">
+                  <label for="gasto-recorrente" class="input-label" style="cursor:pointer;margin:0">Gasto recorrente</label>
+                </div>
+
+                <div id="gasto-error" class="login-error" role="alert" style="display:none"></div>
+                <button type="submit" class="btn-primary" id="btn-gasto" style="background:linear-gradient(135deg,#dc2626,#f87171)">Registrar Gasto</button>
+              </form>
+            </div>
+          </div>
+
+          <!-- ── Lista (direita) ──────────────────── -->
+          <div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-4)">
+              <span class="section-title">Gastos do mês</span>
+              <span style="font-family:var(--font-display);font-size:var(--text-xs);color:var(--text-muted)" id="gastos-count-header"></span>
+            </div>
+            <div id="lista-gastos" style="display:flex;flex-direction:column;gap:var(--space-2)">
+              <div class="skeleton-card"><div class="skeleton skeleton--label"></div><div class="skeleton skeleton--value"></div></div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <nav class="bottom-nav" role="navigation">
+      <a href="/dashboard.html" class="nav-item"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="3" y="3" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.75"/><rect x="11" y="3" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.75"/><rect x="3" y="11" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.75"/><rect x="11" y="11" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.75"/></svg><span>Início</span></a>
+      <a href="/aportes.html" class="nav-item"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 15V5M5 10l5-5 5 5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Aportes</span></a>
+      <button class="nav-fab" onclick="location.href='/aportes.html'">+</button>
+      <a href="/gastos.html" class="nav-item active" aria-current="page"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 5v10M5 10l5 5 5-5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Gastos</span></a>
+      <a href="/relatorio.html" class="nav-item"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="4" y="2" width="12" height="16" rx="2" stroke="currentColor" stroke-width="1.75"/><path d="M8 8h4M8 11h4M8 14h2" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/></svg><span>Relatório</span></a>
+    </nav>
+  </div>
+
+  <script>if ("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js");</script>
+  <script type="module" src="/js/gastos.js"></script>
+</body>
+</html>

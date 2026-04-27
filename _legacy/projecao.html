@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>KiNance — Projeção</title>
+  <meta name="theme-color" content="#e5591d">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/reset.css">
+  <link rel="stylesheet" href="/css/tokens.css">
+  <link rel="stylesheet" href="/css/components.css">
+  <link rel="stylesheet" href="/css/animations.css">
+  <link rel="stylesheet" href="/css/sidebar.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <div class="app-layout">
+    <aside class="sidebar" id="sidebar" role="navigation"></aside>
+    <div class="app-main">
+      <header class="page-header">
+        <div>
+          <h1 class="page-title">Projeção</h1>
+          <p class="page-subtitle">Simule o crescimento do seu patrimônio</p>
+        </div>
+      </header>
+
+      <div class="app-content">
+
+        <!-- Desktop: Sliders à esquerda, gráfico/tabela à direita -->
+        <div style="display:grid;grid-template-columns:300px 1fr;gap:var(--space-5);align-items:start" class="projecao-layout">
+
+          <!-- Parâmetros -->
+          <div class="card" style="position:sticky;top:var(--space-4)">
+            <div class="section-title" style="margin-bottom:var(--space-5)">Parâmetros</div>
+            <div style="display:flex;flex-direction:column;gap:var(--space-5)">
+
+              <div class="form-group">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-2)">
+                  <label class="input-label" for="sl-aporte" style="margin:0">Aporte mensal</label>
+                  <span style="font-family:var(--font-mono);font-size:var(--text-base);font-weight:700;color:var(--orange)" id="sl-aporte-val">R$ 500</span>
+                </div>
+                <input type="range" id="sl-aporte" min="100" max="10000" step="100" value="500" style="width:100%;accent-color:var(--orange)" oninput="updateProjecao()">
+                <div style="display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:10px;color:var(--text-muted);margin-top:4px"><span>R$ 100</span><span>R$ 10k</span></div>
+              </div>
+
+              <div class="form-group">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-2)">
+                  <label class="input-label" for="sl-dy" style="margin:0">DY mensal est.</label>
+                  <span style="font-family:var(--font-mono);font-size:var(--text-base);font-weight:700;color:var(--amber)" id="sl-dy-val">1.0%</span>
+                </div>
+                <input type="range" id="sl-dy" min="0.5" max="2.0" step="0.1" value="1.0" style="width:100%;accent-color:var(--amber)" oninput="updateProjecao()">
+                <div style="display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:10px;color:var(--text-muted);margin-top:4px"><span>0.5%</span><span>2.0%</span></div>
+              </div>
+
+              <div class="form-group">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-2)">
+                  <label class="input-label" for="sl-anos" style="margin:0">Período</label>
+                  <span style="font-family:var(--font-mono);font-size:var(--text-base);font-weight:700;color:var(--text-primary)" id="sl-anos-val">10 anos</span>
+                </div>
+                <input type="range" id="sl-anos" min="1" max="30" step="1" value="10" style="width:100%;accent-color:var(--text-muted)" oninput="updateProjecao()">
+                <div style="display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:10px;color:var(--text-muted);margin-top:4px"><span>1 ano</span><span>30 anos</span></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Resultados -->
+          <div style="display:flex;flex-direction:column;gap:var(--space-4)">
+            <!-- Gráfico -->
+            <div class="card">
+              <div class="section-title" style="margin-bottom:var(--space-4)">Evolução projetada</div>
+              <div style="position:relative;height:240px">
+                <canvas id="grafico-projecao" aria-label="Gráfico de projeção patrimonial"></canvas>
+              </div>
+            </div>
+
+            <!-- Tabela -->
+            <div>
+              <div class="section-title" style="margin-bottom:var(--space-3)">Projeção por período</div>
+              <div id="tabela-projecao" style="display:flex;flex-direction:column;gap:var(--space-2)"></div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <nav class="bottom-nav" role="navigation">
+      <a href="/dashboard.html" class="nav-item"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="3" y="3" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.75"/><rect x="11" y="3" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.75"/><rect x="3" y="11" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.75"/><rect x="11" y="11" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.75"/></svg><span>Início</span></a>
+      <a href="/aportes.html" class="nav-item"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 15V5M5 10l5-5 5 5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Aportes</span></a>
+      <button class="nav-fab" onclick="location.href='/aportes.html'">+</button>
+      <a href="/gastos.html" class="nav-item"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 5v10M5 10l5 5 5-5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Gastos</span></a>
+      <a href="/relatorio.html" class="nav-item"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="4" y="2" width="12" height="16" rx="2" stroke="currentColor" stroke-width="1.75"/><path d="M8 8h4M8 11h4M8 14h2" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/></svg><span>Relatório</span></a>
+    </nav>
+  </div>
+  <script>if ("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js");</script>
+  <script type="module" src="/js/projecao.js"></script>
+</body>
+</html>

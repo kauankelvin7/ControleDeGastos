@@ -1,0 +1,131 @@
+/* css/pages/dashboard.css — KiNance Dashboard */
+
+/* ── Greeting ─────────────────────────────────────── */
+.dashboard-greeting { font-family: var(--font-display); }
+.greeting-sub  { font-size: var(--text-sm); color: var(--text-muted); }
+.greeting-name { 
+  font-size: var(--text-xl); 
+  font-weight: 700; 
+  color: var(--text-primary); 
+  letter-spacing: -0.02em; 
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+.avatar-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-full);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--orange-dim) 60%, transparent), rgba(0, 0, 0, 0.3));
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid color-mix(in srgb, var(--orange) 40%, transparent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: var(--text-base);
+  font-weight: 700;
+  color: var(--orange);
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.avatar-btn:hover { 
+  border-color: var(--orange); 
+  box-shadow: 0 4px 16px color-mix(in srgb, var(--orange) 30%, transparent), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
+}
+
+/* ── Desktop dashboard grid ────────────────────────── */
+@media (min-width: 768px) {
+  .dashboard-top-row {
+    display: grid;
+    grid-template-columns: 380px 1fr;
+    gap: var(--space-5);
+    align-items: start;
+    margin-bottom: var(--space-5);
+  }
+  .dash-metrics {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-4);
+  }
+  .dash-hero { height: 100%; }
+}
+@media (max-width: 767px) {
+  .dashboard-top-row {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    margin-bottom: var(--space-4);
+  }
+  .dash-metrics {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-3);
+  }
+}
+
+/* ── Dashboard two panel ───────────────────────────── */
+@media (min-width: 1024px) {
+  .dashboard-two-panel {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: var(--space-5);
+    align-items: start;
+  }
+}
+@media (max-width: 1023px) {
+  .dashboard-two-panel {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+}
+
+/* ── Últimos aportes ────────────────────────────────── */
+.recent-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-4);
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.recent-item:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+.recent-item-ticker {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--orange);
+  letter-spacing: 0.02em;
+}
+.recent-item-date {
+  font-family: var(--font-display);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+.recent-item-value {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--text-primary);
+  text-align: right;
+}
+.recent-item-cotas {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  text-align: right;
+  font-family: var(--font-display);
+  margin-top: 2px;
+}

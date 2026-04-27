@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>KiNance — Dashboard</title>
+  <meta name="description" content="Acompanhe seu patrimônio em FIIs, dividendos e metas financeiras.">
+  <meta name="theme-color" content="#e5591d">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/reset.css">
+  <link rel="stylesheet" href="/css/tokens.css">
+  <link rel="stylesheet" href="/css/components.css">
+  <link rel="stylesheet" href="/css/animations.css">
+  <link rel="stylesheet" href="/css/sidebar.css">
+  <link rel="stylesheet" href="/css/pages/dashboard.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <div class="app-layout">
+
+    <!-- ── Sidebar (desktop) ───────────────────── -->
+    <aside class="sidebar" id="sidebar" role="navigation" aria-label="Navegação principal"></aside>
+
+    <!-- ── Main ───────────────────────────────── -->
+    <div class="app-main">
+
+      <!-- Top bar -->
+      <header class="app-topbar">
+        <div class="dashboard-greeting">
+          <div class="greeting-sub" id="greeting">Bom dia</div>
+          <h1 class="greeting-name" id="user-name">KiNance</h1>
+        </div>
+        <div style="display:flex;align-items:center;gap:var(--space-3)">
+          <span id="today-date" style="font-family:var(--font-display);font-size:var(--text-sm);color:var(--text-muted)"></span>
+          <button class="avatar-btn" id="avatar-btn" aria-label="Menu do usuário" aria-expanded="false" aria-controls="user-menu">K</button>
+        </div>
+      </header>
+
+      <!-- User dropdown -->
+      <div id="user-menu" hidden style="position:fixed;right:16px;top:72px;background:var(--bg-elevated);border:1px solid var(--border-default);border-radius:var(--radius-lg);padding:var(--space-2);z-index:200;min-width:160px;box-shadow:var(--shadow-lg)">
+        <a href="/onboarding.html" style="display:flex;align-items:center;gap:var(--space-2);padding:var(--space-3) var(--space-4);color:var(--text-secondary);font-family:var(--font-display);font-size:var(--text-sm);border-radius:var(--radius-md);transition:background var(--transition-fast)" onmouseover="this.style.background='var(--bg-base)'" onmouseout="this.style.background=''">⚙️ Configurações</a>
+        <button onclick="window._kinanceLogout?.()" style="display:flex;align-items:center;gap:var(--space-2);padding:var(--space-3) var(--space-4);color:var(--danger);font-family:var(--font-display);font-size:var(--text-sm);border-radius:var(--radius-md);width:100%;text-align:left;background:none;border:none;cursor:pointer;transition:background var(--transition-fast)" onmouseover="this.style.background='var(--bg-base)'" onmouseout="this.style.background=''">🚪 Sair</button>
+      </div>
+
+      <!-- Dashboard content -->
+      <div class="app-content">
+
+        <!-- ── Hero + 4 métricas ─────────────────── -->
+        <div class="dashboard-top-row">
+          <!-- Patrimônio -->
+          <div class="card-patrimonio card--glow dash-hero">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:var(--space-4)">
+              <div class="label">Patrimônio Total</div>
+              <span class="delta delta--flat" id="variacao-dia">—</span>
+            </div>
+            <div class="valor-destaque valor-destaque--xl" id="patrimonio-valor">—</div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:var(--space-5)">
+              <div style="display:inline-flex;align-items:center;gap:var(--space-2);background:rgba(255,255,255,0.05);border:1px solid var(--border-subtle);border-radius:var(--radius-full);padding:4px 12px">
+                <span class="ticker-tag" id="cotacao-ticker">—</span>
+                <span style="font-family:var(--font-mono);font-size:var(--text-sm);color:var(--text-secondary)" id="cotacao-preco">—</span>
+              </div>
+              <div style="text-align:right">
+                <div style="font-family:var(--font-display);font-size:var(--text-xs);color:var(--text-muted)">Lucro/Prejuízo</div>
+                <div style="font-family:var(--font-mono);font-size:var(--text-lg);font-weight:700" id="lucro-valor">—</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 4 métricas -->
+          <div class="dash-metrics">
+            <!-- Dividendo mês -->
+            <div class="card card--amber">
+              <div class="label">Dividendo/mês</div>
+              <div class="valor-destaque valor-destaque--sm" style="margin-top:var(--space-3);color:var(--amber)" id="dividendo-mes">—</div>
+              <div style="font-family:var(--font-display);font-size:var(--text-xs);color:var(--text-muted);margin-top:var(--space-1)" id="dy-pm">DY/PM: —</div>
+            </div>
+            <!-- Total investido -->
+            <div class="card card--orange">
+              <div class="label">Total Investido</div>
+              <div class="valor-destaque valor-destaque--sm" style="margin-top:var(--space-3)" id="total-investido">—</div>
+              <div style="font-family:var(--font-display);font-size:var(--text-xs);color:var(--text-muted);margin-top:var(--space-1)" id="total-cotas">— cotas</div>
+            </div>
+            <!-- Reserva -->
+            <div class="card card--success">
+              <div class="label">Reserva</div>
+              <div class="valor-destaque valor-destaque--sm" style="margin-top:var(--space-3)" id="reserva-valor">—</div>
+              <div style="margin-top:var(--space-3)">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+                  <span style="font-family:var(--font-display);font-size:10px;color:var(--text-muted)" id="reserva-meta-text">de —</span>
+                  <span style="font-family:var(--font-mono);font-size:10px;color:var(--success);font-weight:700" id="reserva-pct">—%</span>
+                </div>
+                <div class="progress-bar"><div class="progress-bar__fill progress-bar__fill--success" id="reserva-bar" style="width:0%"></div></div>
+              </div>
+            </div>
+            <!-- Gastos -->
+            <div class="card card--danger">
+              <div class="label">Gastos do mês</div>
+              <div class="valor-destaque valor-destaque--sm" style="margin-top:var(--space-3);color:var(--danger)" id="gastos-mes">—</div>
+              <div style="font-family:var(--font-display);font-size:var(--text-xs);color:var(--text-muted);margin-top:var(--space-1)" id="gastos-count">— registros</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Meta de patrimônio ─────────────────── -->
+        <div class="card">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-4)">
+            <span class="section-title">Meta de Patrimônio</span>
+            <span style="font-family:var(--font-mono);font-size:var(--text-base);font-weight:700;color:var(--orange)" id="meta-pct">0%</span>
+          </div>
+          <div class="progress-bar" style="height:6px">
+            <div class="progress-bar__fill" id="meta-bar" style="width:0%"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-top:var(--space-2)">
+            <span style="font-family:var(--font-mono);font-size:var(--text-xs);color:var(--text-muted)" id="meta-atual">R$ 0</span>
+            <span style="font-family:var(--font-mono);font-size:var(--text-xs);color:var(--text-muted)" id="meta-alvo">R$ 0</span>
+          </div>
+        </div>
+
+        <!-- ── Gráfico + Últimos aportes ────────────── -->
+        <div class="dashboard-two-panel">
+          <!-- Gráfico -->
+          <div class="card section">
+            <div class="section-title" style="margin-bottom:var(--space-4)">Evolução patrimonial</div>
+            <div style="position:relative;height:200px">
+              <canvas id="grafico-patrimonio" aria-label="Gráfico de evolução do patrimônio"></canvas>
+            </div>
+          </div>
+          <!-- Últimos aportes -->
+          <div class="section">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <span class="section-title">Últimos aportes</span>
+              <a href="/aportes.html" style="font-family:var(--font-display);font-size:var(--text-xs);color:var(--orange)">Ver todos →</a>
+            </div>
+            <div id="recent-aportes">
+              <div class="skeleton-card"><div class="skeleton skeleton--label"></div><div class="skeleton skeleton--value"></div></div>
+            </div>
+            <a href="/aportes.html" class="btn-secondary" style="width:auto;min-height:40px;font-size:var(--text-sm)">+ Novo aporte</a>
+          </div>
+        </div>
+
+      </div><!-- /app-content -->
+    </div><!-- /app-main -->
+
+    <!-- Mobile bottom nav -->
+    <nav class="bottom-nav" role="navigation" aria-label="Navegação principal">
+      <a href="/dashboard.html" class="nav-item active" aria-current="page" aria-label="Início">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="3" y="3" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.75"/><rect x="11" y="3" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.75"/><rect x="3" y="11" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.75"/><rect x="11" y="11" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.75"/></svg>
+        <span>Início</span>
+      </a>
+      <a href="/aportes.html" class="nav-item" aria-label="Aportes">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 15V5M5 10l5-5 5 5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span>Aportes</span>
+      </a>
+      <button class="nav-fab" aria-label="Novo aporte" onclick="location.href='/aportes.html'">+</button>
+      <a href="/gastos.html" class="nav-item" aria-label="Gastos">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 5v10M5 10l5 5 5-5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span>Gastos</span>
+      </a>
+      <a href="/relatorio.html" class="nav-item" aria-label="Relatório">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="4" y="2" width="12" height="16" rx="2" stroke="currentColor" stroke-width="1.75"/><path d="M8 8h4M8 11h4M8 14h2" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/></svg>
+        <span>Relatório</span>
+      </a>
+    </nav>
+
+  </div><!-- /app-layout -->
+
+  <script>
+    if ("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js");
+    // Avatar menu toggle
+    document.getElementById("avatar-btn")?.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const menu = document.getElementById("user-menu");
+      const open = !menu.hidden;
+      menu.hidden = open;
+      e.currentTarget.setAttribute("aria-expanded", String(!open));
+    });
+    document.addEventListener("click", () => {
+      const menu = document.getElementById("user-menu");
+      if (menu) { menu.hidden = true; document.getElementById("avatar-btn")?.setAttribute("aria-expanded","false"); }
+    });
+  </script>
+  <script type="module" src="/js/dashboard.js"></script>
+</body>
+</html>

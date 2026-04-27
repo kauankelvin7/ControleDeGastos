@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 60" fill="none">
+  <rect width="48" height="48" x="6" y="6" rx="12" fill="url(#grad)"/>
+  <text x="30" y="37" font-family="monospace" font-size="22" font-weight="700" fill="white" text-anchor="middle">K₿</text>
+  <text x="68" y="38" font-family="monospace" font-size="28" font-weight="700" fill="url(#grad2)">KiNance</text>
+  <defs>
+    <linearGradient id="grad" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#e5591d"/>
+      <stop offset="1" stop-color="#ffa43c"/>
+    </linearGradient>
+    <linearGradient id="grad2" x1="68" y1="0" x2="200" y2="0" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#ffa43c"/>
+      <stop offset="1" stop-color="#e5591d"/>
+    </linearGradient>
+  </defs>
+</svg>

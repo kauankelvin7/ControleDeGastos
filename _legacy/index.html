@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>KiNance — Login</title>
+  <meta name="description" content="Seu controle financeiro pessoal com FIIs. Acompanhe patrimônio, dividendos e projeções.">
+  <meta name="theme-color" content="#e5591d">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="KiNance">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/reset.css">
+  <link rel="stylesheet" href="/css/tokens.css">
+  <link rel="stylesheet" href="/css/components.css">
+  <link rel="stylesheet" href="/css/animations.css">
+  <link rel="stylesheet" href="/css/pages/login.css">
+</head>
+<body>
+  <div class="login-container">
+    <div class="login-logo">
+      <div class="login-logo-mark">K₿</div>
+      <div class="login-brand">KiNance</div>
+      <div class="login-tagline">Seu patrimônio, em tempo real.</div>
+    </div>
+
+    <div class="login-card">
+      <!-- Tabs Login / Cadastro -->
+      <div class="auth-tabs" role="tablist">
+        <button class="auth-tab active" id="tab-login" role="tab" aria-selected="true" aria-controls="panel-login" onclick="switchTab('login')">Entrar</button>
+        <button class="auth-tab" id="tab-register" role="tab" aria-selected="false" aria-controls="panel-register" onclick="switchTab('register')">Criar conta</button>
+      </div>
+
+      <!-- Erro global -->
+      <div class="login-error" id="login-error" role="alert" aria-live="assertive"></div>
+
+      <!-- Painel Login -->
+      <div id="panel-login" role="tabpanel" aria-labelledby="tab-login">
+        <form class="login-form" id="form-login" novalidate>
+          <div class="form-group">
+            <label class="input-label" for="login-email">Email</label>
+            <input
+              class="input" id="login-email" type="email"
+              placeholder="seu@email.com" autocomplete="email"
+              aria-required="true" aria-describedby="login-email-error"
+            >
+            <span id="login-email-error" class="input-error-msg" role="alert"></span>
+          </div>
+          <div class="form-group">
+            <label class="input-label" for="login-senha">Senha</label>
+            <input
+              class="input" id="login-senha" type="password"
+              placeholder="••••••••" autocomplete="current-password"
+              aria-required="true" aria-describedby="login-senha-error"
+            >
+            <span id="login-senha-error" class="input-error-msg" role="alert"></span>
+            <button type="button" class="btn-forgot" id="btn-forgot" onclick="recuperarSenha()">Esqueceu a senha?</button>
+          </div>
+          <button type="submit" class="btn-primary" id="btn-login">
+            Entrar
+          </button>
+        </form>
+      </div>
+
+      <!-- Painel Cadastro -->
+      <div id="panel-register" role="tabpanel" aria-labelledby="tab-register" hidden>
+        <form class="login-form" id="form-register" novalidate>
+          <div class="form-group">
+            <label class="input-label" for="reg-email">Email</label>
+            <input
+              class="input" id="reg-email" type="email"
+              placeholder="seu@email.com" autocomplete="email"
+              aria-required="true"
+            >
+          </div>
+          <div class="form-group">
+            <label class="input-label" for="reg-senha">Senha</label>
+            <input
+              class="input" id="reg-senha" type="password"
+              placeholder="Mínimo 6 caracteres" autocomplete="new-password"
+              aria-required="true"
+            >
+          </div>
+          <div class="form-group">
+            <label class="input-label" for="reg-senha2">Confirmar senha</label>
+            <input
+              class="input" id="reg-senha2" type="password"
+              placeholder="Repita a senha" autocomplete="new-password"
+              aria-required="true"
+            >
+          </div>
+          <button type="submit" class="btn-primary" id="btn-register">
+            Criar conta
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    if ("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js");
+  </script>
+
+  <script type="module">
+    import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword }
+      from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+    import { doc, getDoc }
+      from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+    import { app, db } from "/js/firebase.js";
+
+    const auth = getAuth(app);
+
+    // Redirecionar se já logado
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) return;
+      // Verifica onboarding
+      const snap = await getDoc(doc(db, "users", user.uid));
+      if (!snap.exists() || !snap.data().onboardingCompleto) {
+        window.location.replace("/onboarding.html");
+      } else {
+        window.location.replace("/dashboard.html");
+      }
+    });
+
+    // ── Tab switcher ──────────────────────────────────
+    window.switchTab = (tab) => {
+      const isLogin = tab === "login";
+      document.getElementById("panel-login").hidden    = !isLogin;
+      document.getElementById("panel-register").hidden =  isLogin;
+      document.getElementById("tab-login").classList.toggle("active", isLogin);
+      document.getElementById("tab-register").classList.toggle("active", !isLogin);
+      document.getElementById("tab-login").setAttribute("aria-selected", isLogin);
+      document.getElementById("tab-register").setAttribute("aria-selected", !isLogin);
+      hideError();
+    };
+
+    // ── Error helpers ─────────────────────────────────
+    function showError(msg) {
+      const el = document.getElementById("login-error");
+      el.textContent = msg;
+      el.classList.add("visible");
+    }
+    function hideError() {
+      document.getElementById("login-error").classList.remove("visible");
+    }
+
+    function setLoading(btnId, loading) {
+      const btn = document.getElementById(btnId);
+      btn.disabled = loading;
+      btn.textContent = loading ? "Aguarde..." : (btnId === "btn-login" ? "Entrar" : "Criar conta");
+    }
+
+    // ── Login ──────────────────────────────────────────
+    document.getElementById("form-login").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      hideError();
+      const email = document.getElementById("login-email").value.trim();
+      const senha = document.getElementById("login-senha").value;
+
+      if (!email) { showError("Informe o email."); return; }
+      if (!senha)  { showError("Informe a senha."); return; }
+
+      setLoading("btn-login", true);
+      try {
+        await signInWithEmailAndPassword(auth, email, senha);
+        // onAuthStateChanged cuida do redirect
+      } catch (err) {
+        setLoading("btn-login", false);
+        const msgs = {
+          "auth/invalid-credential": "Email ou senha incorretos.",
+          "auth/user-not-found":     "Usuário não encontrado.",
+          "auth/wrong-password":     "Senha incorreta.",
+          "auth/invalid-email":      "Email inválido.",
+          "auth/too-many-requests":  "Muitas tentativas. Tente mais tarde.",
+        };
+        showError(msgs[err.code] || "Erro ao entrar. Tente novamente.");
+      }
+    });
+
+    // ── Cadastro ───────────────────────────────────────
+    document.getElementById("form-register").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      hideError();
+      const email  = document.getElementById("reg-email").value.trim();
+      const senha  = document.getElementById("reg-senha").value;
+      const senha2 = document.getElementById("reg-senha2").value;
+
+      if (!email)           { showError("Informe o email."); return; }
+      if (senha.length < 6) { showError("Senha deve ter pelo menos 6 caracteres."); return; }
+      if (senha !== senha2) { showError("As senhas não coincidem."); return; }
+
+      setLoading("btn-register", true);
+      try {
+        await createUserWithEmailAndPassword(auth, email, senha);
+        // onAuthStateChanged → verifica onboarding (não existe) → /onboarding.html
+      } catch (err) {
+        setLoading("btn-register", false);
+        const msgs = {
+          "auth/email-already-in-use": "Este email já está cadastrado.",
+          "auth/invalid-email":        "Email inválido.",
+          "auth/weak-password":        "Senha muito fraca.",
+        };
+        showError(msgs[err.code] || "Erro ao criar conta. Tente novamente.");
+      }
+    });
+
+    // ── Recuperar senha ────────────────────────────────
+    window.recuperarSenha = async () => {
+      const email = document.getElementById("login-email").value.trim();
+      if (!email) { showError("Digite seu email acima para recuperar a senha."); return; }
+      try {
+        const { sendPasswordResetEmail } = await import("https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js");
+        await sendPasswordResetEmail(auth, email);
+        hideError();
+        // Mostra feedback via toast simples
+        const t = document.createElement("div");
+        t.className = "toast toast--success toast--visible";
+        t.setAttribute("role","status");
+        t.textContent = "Email de recuperação enviado!";
+        document.body.appendChild(t);
+        setTimeout(() => t.remove(), 3000);
+      } catch (err) {
+        showError("Erro ao enviar email. Verifique o endereço.");
+      }
+    };
+  </script>
+</body>
+</html>

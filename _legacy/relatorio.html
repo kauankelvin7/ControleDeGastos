@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>KiNance — Relatório</title>
+  <meta name="theme-color" content="#e5591d">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/reset.css">
+  <link rel="stylesheet" href="/css/tokens.css">
+  <link rel="stylesheet" href="/css/components.css">
+  <link rel="stylesheet" href="/css/animations.css">
+  <link rel="stylesheet" href="/css/sidebar.css">
+  <link rel="stylesheet" href="/css/pages/relatorio.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+  <div class="app-layout">
+    <aside class="sidebar" id="sidebar" role="navigation"></aside>
+
+    <div class="app-main">
+      <header class="page-header">
+        <div>
+          <h1 class="page-title">Relatório</h1>
+          <p class="page-subtitle">Resumo financeiro mensal</p>
+        </div>
+        <div class="mes-selector" style="margin:0;max-width:260px">
+          <span style="font-family:var(--font-display);font-size:var(--text-sm);color:var(--text-muted)">📅</span>
+          <select id="mes-select" aria-label="Selecionar mês" style="background:transparent;border:none;color:var(--text-primary);font-family:var(--font-display);font-size:var(--text-sm);font-weight:600;outline:none;cursor:pointer;flex:1"></select>
+        </div>
+      </header>
+
+      <div class="app-content">
+
+        <!-- Desktop: 2 colunas -->
+        <div class="relatorio-layout">
+
+          <!-- Coluna esquerda: resumo + AI -->
+          <div style="display:flex;flex-direction:column;gap:var(--space-4)">
+
+            <!-- Resumo -->
+            <div class="card">
+              <div class="section-title" style="margin-bottom:var(--space-4)">Resumo do mês</div>
+              <div id="relatorio-summary" style="display:flex;flex-direction:column">
+                <div class="summary-row">
+                  <span class="summary-row-label">Patrimônio total</span>
+                  <span class="summary-row-value" id="rel-patrimonio">—</span>
+                </div>
+                <div class="summary-row">
+                  <span class="summary-row-label">Total investido</span>
+                  <span class="summary-row-value" id="rel-investido">—</span>
+                </div>
+                <div class="summary-row">
+                  <span class="summary-row-label">Lucro / Prejuízo</span>
+                  <span class="summary-row-value" id="rel-lucro">—</span>
+                </div>
+                <div class="summary-row">
+                  <span class="summary-row-label">Dividendos recebidos</span>
+                  <span class="summary-row-value positive" id="rel-dividendos">—</span>
+                </div>
+                <div class="summary-row">
+                  <span class="summary-row-label">DY mensal (PM)</span>
+                  <span class="summary-row-value" id="rel-dy">—</span>
+                </div>
+                <div class="summary-row">
+                  <span class="summary-row-label">Gastos do mês</span>
+                  <span class="summary-row-value negative" id="rel-gastos">—</span>
+                </div>
+                <div class="summary-row" style="border:none">
+                  <span class="summary-row-label">Reserva de emergência</span>
+                  <span class="summary-row-value" id="rel-reserva">—</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Export PDF -->
+            <button class="btn-pdf" id="btn-pdf" onclick="exportarPDF()">
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="3" y="1" width="12" height="16" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M7 7h4M7 10h4M7 13h2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+              Exportar PDF
+            </button>
+          </div>
+
+          <!-- Coluna direita: AI -->
+          <div class="ai-section" style="margin:0">
+            <div class="ai-section-header">
+              <div class="ai-icon">✨</div>
+              <div>
+                <div class="ai-title">Análise com IA</div>
+                <div class="ai-subtitle">Powered by Grok · xAI</div>
+              </div>
+            </div>
+            <p style="font-family:var(--font-display);font-size:var(--text-sm);color:var(--text-muted);margin-bottom:var(--space-4);line-height:1.6">
+              O Grok analisa seus dados financeiros e gera insights personalizados, diagnóstico e recomendações para o período selecionado.
+            </p>
+            <button class="btn-ai" id="btn-analisar" onclick="analisarComIA()">✨ Analisar com IA</button>
+            <div id="area-insight"></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <nav class="bottom-nav" role="navigation">
+      <a href="/dashboard.html" class="nav-item"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="3" y="3" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.75"/><rect x="11" y="3" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.75"/><rect x="3" y="11" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.75"/><rect x="11" y="11" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.75"/></svg><span>Início</span></a>
+      <a href="/aportes.html" class="nav-item"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 15V5M5 10l5-5 5 5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Aportes</span></a>
+      <button class="nav-fab" onclick="location.href='/aportes.html'">+</button>
+      <a href="/gastos.html" class="nav-item"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 5v10M5 10l5 5 5-5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Gastos</span></a>
+      <a href="/relatorio.html" class="nav-item active" aria-current="page"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="4" y="2" width="12" height="16" rx="2" stroke="currentColor" stroke-width="1.75"/><path d="M8 8h4M8 11h4M8 14h2" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/></svg><span>Relatório</span></a>
+    </nav>
+  </div>
+
+  <script>if ("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js");</script>
+  <script type="module" src="/js/relatorio.js"></script>
+</body>
+</html>

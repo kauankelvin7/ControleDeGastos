@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transação - Controle de Gastos</title>
+    <link rel="stylesheet" href="../../global.css">
+    <link rel="stylesheet" href="transaction.css">
+</head>
+
+<body>
+    <div class="app-layout">
+        <main class="app-main">
+            <header class="page-header" style="justify-content: flex-end;">
+                <button type="button" class="btn-ghost quit-button" onclick="logout()">Sair</button>
+            </header> 
+            
+            <div class="app-content" style="display: flex; justify-content: center; align-items: center;">
+                <main class="centralize" style="width: 100%; max-width: 630px;">
+                    <form>
+                        <h1>Transação</h1>
+                        
+                        <div class="radio-group">
+                            <input type="radio" name="type" id="expense" value="expense" checked>
+                            <label for="expense">Despesa</label>
+                            
+                            <input type="radio" name="type" id="income" value="income">
+                            <label for="income">Receita</label>
+                        </div>
+
+                        <div class="form-group">
+                            <div><label>Data da transação *</label></div>
+                            <input type="date" class="input" onchange="onChangeDate()" id="date">
+                            <small id="data-error-message" class="error-message input-error-msg">Data é obrigatória.</small>
+                        </div>
+
+                        <div class="form-group">
+                            <div><label>Moeda *</label></div>
+                            <select class="input" onchange="onChangeCurrency()" id="currency">
+                                <option value="">-- Selecione uma moeda --</option>
+                                <option value="USD">Dólar</option>
+                                <option value="EUR">Euro</option>
+                                <option value="BRL" selected>Real</option>
+                            </select>
+                            <small id="currency-error-message" class="error-message input-error-msg">Moeda é obrigatória.</small>
+                        </div>
+
+                        <div class="form-group">
+                            <div><label>Valor *</label></div>
+                            <input type="number" class="input" onchange="onChangeValue()" id="value">
+                            <small id="value-error-message" class="error-message input-error-msg">Valor deve ser maior que zero.</small>
+                        </div>
+
+                        <div class="form-group">
+                            <div><label>Tipo de transação *</label></div>
+                            <select class="input" onchange="onChangeTransactionType()" id="transaction-type">
+                                <option value="">-- Selecione um tipo de transação --</option>
+                                <option value="Acomodação">Acomodação</option>
+                                <option value="Alimentação">Alimentação</option>
+                                <option value="Transporte">Transporte</option>
+                                <option value="Salário">Salário</option>
+                                <option value="Supermercado">Supermercado</option>
+                                <option value="Outros">Outros</option>
+                            </select>
+                            <small id="transaction-error-message" class="error-message input-error-msg">Tipo de transação é obrigatório.</small>
+                        </div>
+
+                        <div class="form-group">
+                            <div><label>Descrição</label></div>
+                            <input type="text" class="input" id="description">
+                        </div>
+
+                        <button type="button" class="btn-primary" id="save-button" disabled onclick="saveTransaction()">Salvar</button>
+                        <button type="button" class="btn-secondary" onclick="back()">Cancelar</button>
+                    </form>
+                </main>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/11.0.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.0.2/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore-compat.js"></script>
+    <script src="/../../firebase-init.js"></script>
+    <script src="../../loading.js"></script>
+    <script src="../../auth-guard.js"></script>
+    <script src="transaction.js"></script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+{
+  "name": "KiNance",
+  "short_name": "KiNance",
+  "description": "Controle financeiro pessoal com FIIs",
+  "start_url": "/dashboard.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0c0b09",
+  "theme_color": "#e5591d",
+  "icons": [
+    { "src": "/assets/images/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/assets/images/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

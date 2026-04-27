@@ -1,0 +1,107 @@
+body {
+    height: 100vh;
+}
+
+ol {
+    color: var(--text-primary);
+    list-style-type: none;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+}
+
+ol li {
+    cursor: pointer;
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: var(--radius-lg);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+ol li:hover {
+    opacity: 1;
+    border-color: rgba(255, 255, 255, 0.12);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+ol li.expense {
+    border-left: 3px solid var(--danger);
+}
+ol li.expense::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; bottom: 0; width: 40px;
+    background: linear-gradient(90deg, color-mix(in srgb, var(--danger) 10%, transparent), transparent);
+    pointer-events: none;
+}
+
+ol li.income {
+    border-left: 3px solid var(--success);
+}
+ol li.income::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; bottom: 0; width: 40px;
+    background: linear-gradient(90deg, color-mix(in srgb, var(--success) 10%, transparent), transparent);
+    pointer-events: none;
+}
+
+ol li:hover .remove-button {
+    display: block;
+}
+
+p {
+    margin: var(--space-1) 0;
+    font-family: var(--font-display);
+}
+
+/* Estilo do botão de Remover */
+.remove-button {
+    background-color: transparent; /* Fundo transparente */
+    color: var(--danger); /* Cor do texto vermelho */
+    font-family: var(--font-display);
+    font-size: var(--text-sm);
+    padding: var(--space-2) var(--space-4); /* Aumentando o padding para um tamanho mais imponente */
+    border: 1px solid var(--danger); /* Borda vermelha */
+    border-radius: var(--radius-md); /* Deixando o botão quadrado */
+    cursor: pointer;
+    font-weight: 700; /* Letra em negrito */
+    text-transform: uppercase; /* Texto em maiúsculas */
+    letter-spacing: 0.05em; /* Espaçamento entre as letras */
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); /* Animações suaves */
+    box-shadow: 0 2px 8px color-mix(in srgb, var(--danger) 15%, transparent); /* Sombra suave e discreta */
+    margin-left: auto;
+    width: auto;
+    display: none;
+}
+
+.remove-button:hover {
+    background-color: color-mix(in srgb, var(--danger) 15%, transparent); /* Cor de fundo vermelha ao passar o mouse */
+    color: var(--danger); /* Cor do texto para branco */
+    border-color: var(--danger); /* Borda mais escura ao passar o mouse */
+    transform: translateY(-1px) scale(1.02); /* Aumenta o tamanho levemente */
+    box-shadow: 0 4px 16px color-mix(in srgb, var(--danger) 30%, transparent), inset 0 1px 0 rgba(255, 255, 255, 0.1); /* Sombra mais forte no hover */
+}
+
+.remove-button:active {
+    background-color: color-mix(in srgb, var(--danger) 25%, transparent); /* Cor mais escura ao clicar */
+    border-color: var(--danger); /* Borda mais escura ao clicar */
+    transform: scale(0.98); /* Efeito de "pressionar" */
+    box-shadow: 0 2px 4px color-mix(in srgb, var(--danger) 20%, transparent); /* Sombra mais suave ao clicar */
+}
+
+.remove-button:focus {
+    outline: none; /* Remove o contorno padrão */
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--danger) 30%, transparent); /* Sombra suave ao focar */
+}

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>KiNance — Aportes</title>
+  <meta name="theme-color" content="#e5591d">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/reset.css">
+  <link rel="stylesheet" href="/css/tokens.css">
+  <link rel="stylesheet" href="/css/components.css">
+  <link rel="stylesheet" href="/css/animations.css">
+  <link rel="stylesheet" href="/css/sidebar.css">
+  <link rel="stylesheet" href="/css/pages/aportes.css">
+</head>
+<body>
+  <div class="app-layout">
+    <aside class="sidebar" id="sidebar" role="navigation" aria-label="Navegação principal"></aside>
+
+    <div class="app-main">
+      <header class="page-header">
+        <div>
+          <h1 class="page-title">Aportes</h1>
+          <p class="page-subtitle">Registre compras e vendas de cotas</p>
+        </div>
+      </header>
+
+      <div class="app-content">
+        <div class="page-two-col">
+
+          <!-- ── Formulário (esquerda) ──────────────── -->
+          <div class="form-panel">
+            <div class="card card--highlight" style="display:flex;flex-direction:column;gap:var(--space-4)">
+              <div class="section-title">Novo aporte</div>
+
+              <!-- PM Summary inline (desktop) -->
+              <div class="pm-summary" id="pm-summary" style="display:none">
+                <div class="pm-item">
+                  <div class="pm-label">Total cotas</div>
+                  <div class="pm-value" id="pm-total-cotas">0</div>
+                </div>
+                <div class="pm-divider"></div>
+                <div class="pm-item">
+                  <div class="pm-label">Preço médio</div>
+                  <div class="pm-value" id="pm-preco">—</div>
+                </div>
+                <div class="pm-divider"></div>
+                <div class="pm-item">
+                  <div class="pm-label">Total invest.</div>
+                  <div class="pm-value" id="pm-total-invest">—</div>
+                </div>
+              </div>
+
+              <form id="form-aporte" novalidate style="display:flex;flex-direction:column;gap:var(--space-4)">
+                <div class="form-group">
+                  <label class="input-label">Tipo de operação</label>
+                  <div class="tipo-tabs" role="group" aria-label="Tipo de operação">
+                    <button type="button" class="tipo-tab active--compra" id="tab-compra" onclick="setTipo('compra')" aria-pressed="true">📈 Compra</button>
+                    <button type="button" class="tipo-tab" id="tab-venda" onclick="setTipo('venda')" aria-pressed="false">📉 Venda</button>
+                  </div>
+                  <input type="hidden" id="tipo-aporte" value="compra">
+                </div>
+
+                <div class="form-group">
+                  <label class="input-label" for="ticker">Ticker do FII</label>
+                  <input class="input" id="ticker" type="text" placeholder="MXRF11" maxlength="7" list="tickers-list" autocomplete="off" aria-required="true" style="text-transform:uppercase" oninput="onTickerChange(this.value)">
+                  <datalist id="tickers-list"></datalist>
+                  <div class="cotacao-badge" id="cotacao-badge" style="margin-top:var(--space-2)">Digite o ticker para buscar cotação</div>
+                </div>
+
+                <div class="grid-2">
+                  <div class="form-group">
+                    <label class="input-label" for="cotas">Cotas</label>
+                    <input class="input" id="cotas" type="number" placeholder="10" min="1" step="1" inputmode="decimal" aria-required="true" oninput="calcTotal()">
+                  </div>
+                  <div class="form-group">
+                    <label class="input-label" for="valor-cota">Valor/cota (R$)</label>
+                    <input class="input" id="valor-cota" type="number" placeholder="9.93" min="0.01" step="0.01" inputmode="decimal" aria-required="true" oninput="calcTotal()">
+                  </div>
+                </div>
+
+                <div class="total-display">
+                  <div class="total-label">Total da operação</div>
+                  <div class="total-value" id="total-display">R$ 0,00</div>
+                </div>
+
+                <div class="form-group">
+                  <label class="input-label" for="observacao">Observação <span style="color:var(--text-disabled)">(opcional)</span></label>
+                  <input class="input" id="observacao" type="text" placeholder="ex: primeiro aporte" maxlength="100">
+                </div>
+
+                <div id="form-error" class="login-error" role="alert" style="display:none"></div>
+                <button type="submit" class="btn-primary" id="btn-aporte">Registrar Aporte</button>
+              </form>
+            </div>
+          </div>
+
+          <!-- ── Histórico (direita) ──────────────── -->
+          <div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-4)">
+              <span class="section-title">Histórico</span>
+              <span style="font-family:var(--font-display);font-size:var(--text-xs);color:var(--text-muted)" id="hist-count"></span>
+            </div>
+            <div id="lista-aportes" style="display:flex;flex-direction:column;gap:var(--space-2)">
+              <div class="skeleton-card"><div class="skeleton skeleton--label"></div><div class="skeleton skeleton--value"></div></div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <nav class="bottom-nav" role="navigation">
+      <a href="/dashboard.html" class="nav-item"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="3" y="3" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.75"/><rect x="11" y="3" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.75"/><rect x="3" y="11" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.75"/><rect x="11" y="11" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.75"/></svg><span>Início</span></a>
+      <a href="/aportes.html" class="nav-item active" aria-current="page"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 15V5M5 10l5-5 5 5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Aportes</span></a>
+      <button class="nav-fab" onclick="document.getElementById('ticker').focus()">+</button>
+      <a href="/gastos.html" class="nav-item"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 5v10M5 10l5 5 5-5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Gastos</span></a>
+      <a href="/relatorio.html" class="nav-item"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="4" y="2" width="12" height="16" rx="2" stroke="currentColor" stroke-width="1.75"/><path d="M8 8h4M8 11h4M8 14h2" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/></svg><span>Relatório</span></a>
+    </nav>
+  </div>
+
+  <script>if ("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js");</script>
+  <script type="module" src="/js/aportes.js"></script>
+</body>
+</html>

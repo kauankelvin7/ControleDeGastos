@@ -1,0 +1,241 @@
+/* Corpo */
+body {
+    font-family: var(--font-body);
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100dvh;
+    background-color: var(--bg-base);
+}
+
+/* Cabeçalho - Botão Sair */
+header {
+    position: absolute;
+    top: var(--space-4);
+    right: var(--space-4);
+}
+
+/* Main Content */
+main {
+    width: 100%;
+    max-width: 630px; /* Largura máxima para o formulário */
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: var(--radius-xl);
+    box-shadow: 0 32px 64px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    padding: var(--space-6);
+    box-sizing: border-box;
+    color: var(--text-primary);
+}
+
+/* Título */
+h1 {
+    text-align: center;
+    font-family: var(--font-display);
+    font-size: var(--text-2xl);
+    font-weight: 700;
+    margin-bottom: var(--space-6); /* Espaçamento abaixo do título */
+    color: var(--text-primary);
+    letter-spacing: -0.02em;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+/* Formulário */
+form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5); /* Espaçamento entre os campos */
+}
+
+/* Grupo de Rádio (Receita / Despesa) */
+.radio-group {
+    display: flex;
+    justify-content: center;
+    gap: var(--space-3);
+}
+
+/* Form Group */
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    width: 100%;
+}
+
+label {
+    font-family: var(--font-display);
+    font-weight: 600;
+    color: var(--text-secondary);
+    font-size: var(--text-sm);
+}
+
+/* Inputs e selects */
+input,
+select {
+    width: 100%;
+    padding: var(--space-3) var(--space-4);
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    font-family: var(--font-display);
+    font-size: var(--text-base);
+    box-sizing: border-box;
+    outline: none;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    appearance: none;
+    -webkit-appearance: none;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Foco nos inputs */
+input:focus,
+select:focus {
+    border-color: var(--orange);
+    background: rgba(0, 0, 0, 0.3);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2), 0 0 0 3px color-mix(in srgb, var(--orange) 20%, transparent);
+}
+
+/* Estilo para os radio buttons */
+input[type="radio"] {
+    display: none; /* Esconde o círculo de rádio padrão */
+}
+
+/* Estilo para os labels (botões de rádio) */
+.radio-group label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: var(--radius-full);
+    font-family: var(--font-display);
+    font-size: var(--text-sm);
+    font-weight: 600;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    flex: 1; /* Faz com que os botões dividam o espaço igualmente */
+}
+
+/* Estilo quando o botão é selecionado */
+input[type="radio"]:checked + label {
+    background: linear-gradient(135deg, color-mix(in srgb, var(--orange) 15%, transparent), rgba(0,0,0,0.2));
+    border-color: color-mix(in srgb, var(--orange) 40%, transparent);
+    color: var(--orange);
+    box-shadow: 0 4px 16px color-mix(in srgb, var(--orange) 20%, transparent), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    text-shadow: 0 0 8px color-mix(in srgb, var(--orange) 30%, transparent);
+}
+
+/* Efeito hover */
+.radio-group label:hover:not(:checked) {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.15);
+    color: var(--text-primary);
+    transform: translateY(-1px);
+}
+
+/* Estilo para os ícones de rádio customizados */
+.radio-group label:before {
+    content: '';
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(0, 0, 0, 0.3);
+    margin-right: var(--space-2);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* Estilo quando o botão é selecionado (círculo) */
+input[type="radio"]:checked + label:before {
+    background-color: var(--orange);
+    border-color: color-mix(in srgb, var(--amber) 60%, transparent);
+    box-shadow: 0 0 10px var(--orange), inset 0 1px 2px rgba(0,0,0,0.5);
+}
+
+/* Botões */
+button {
+    padding: var(--space-3) var(--space-4);
+    min-height: 48px;
+    border: none;
+    border-radius: var(--radius-md);
+    font-family: var(--font-display);
+    font-size: var(--text-base);
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    text-align: center;
+    width: 100%;
+    letter-spacing: 0.01em;
+}
+
+button.solid {
+    background: linear-gradient(135deg, var(--orange), var(--amber));
+    color: white;
+    box-shadow: 0 4px 16px color-mix(in srgb, var(--orange) 30%, transparent), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+button.solid:hover {
+    background: linear-gradient(135deg, var(--amber), var(--orange));
+    box-shadow: 0 6px 24px color-mix(in srgb, var(--orange) 40%, transparent), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    transform: translateY(-1px);
+}
+
+button.solid:active {
+    transform: scale(0.98);
+}
+
+button.solid-two {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    color: var(--text-secondary);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+button.solid-two:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.15);
+    color: var(--text-primary);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Efeito de hover nos campos de input */
+input[type="date"]:hover:not(:focus),
+select:hover:not(:focus) {
+    border-color: rgba(255, 255, 255, 0.15); /* Altera a cor da borda ao passar o mouse */
+    background-color: rgba(255, 255, 255, 0.03); /* Adiciona fundo sutil */
+    transition: all 0.3s ease; /* Transição suave */
+}
+
+/* Efeito de hover específico para o ícone de calendário */
+input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(0.6); /* Clareia o ícone nativo no fundo escuro */
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+input[type="date"]:hover::-webkit-calendar-picker-indicator {
+    filter: invert(0.8) sepia(1) saturate(5) hue-rotate(340deg); /* Aproximação do tom laranja no hover */
+}
+
+/* Responsividade */
+@media (max-width: 480px) {
+    main {
+        padding: var(--space-5);
+        border-radius: var(--radius-lg);
+    }
+
+    button {
+        font-size: var(--text-sm);
+    }
+}
