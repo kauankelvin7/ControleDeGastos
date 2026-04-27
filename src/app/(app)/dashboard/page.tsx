@@ -4,6 +4,7 @@ import { useAportes, useGastos } from "@/hooks/useFirebaseData";
 import { formatBRL } from "@/lib/utils";
 import { TrendingUp, ArrowDownCircle, ArrowUpCircle } from "lucide-react";
 import Link from "next/link";
+import PatrimonioChart from "@/components/dashboard/PatrimonioChart";
 
 export default function DashboardPage() {
   const { data: aportes, isLoading: loadingAportes } = useAportes();
@@ -72,10 +73,7 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
         {/* Gráfico */}
-        <div className="lg:col-span-2 bg-[linear-gradient(145deg,rgba(255,255,255,0.02)_0%,transparent_100%)] backdrop-blur-xl border border-white/5 rounded-2xl p-6 shadow-[0_8px_32px_rgba(0,0,0,0.2)] min-h-[300px] flex flex-col items-center justify-center transition-all duration-300 hover:border-white/10">
-          <div className="text-text-secondary font-display font-medium mb-2">Gráfico de Patrimônio</div>
-          <div className="text-xs text-text-disabled uppercase tracking-widest px-3 py-1 rounded-full border border-white/5 bg-white/5">Em desenvolvimento</div>
-        </div>
+        <PatrimonioChart aportes={aportes || []} />
 
         {/* Últimos Lançamentos */}
         <div className="bg-[linear-gradient(145deg,rgba(255,255,255,0.02)_0%,transparent_100%)] backdrop-blur-xl border border-white/5 rounded-2xl p-6 shadow-[0_8px_32px_rgba(0,0,0,0.2)] transition-all duration-300 hover:border-white/10">
