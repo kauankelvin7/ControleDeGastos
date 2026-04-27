@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { useMetas } from "@/hooks/useFirebaseData";
 import { formatBRL, maskCurrency, parseCurrency } from "@/lib/utils";
-import { Target, Plus, Flag, Calendar, X } from "lucide-react";
-import { collection, addDoc, doc, updateDoc } from "firebase/firestore";
+import { Target, Plus, Flag, Calendar, X, Pencil, Trash2 } from "lucide-react";
+import { collection, addDoc, doc, updateDoc, deleteDoc } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -17,6 +17,7 @@ export default function MetasPage() {
   const [titulo, setTitulo] = useState("");
   const [valorAlvo, setValorAlvo] = useState("");
   const [dataLimite, setDataLimite] = useState("");
+  const [editMetaId, setEditMetaId] = useState<string | null>(null);
 
   // Aporte State
   const [aporteMetaId, setAporteMetaId] = useState<string | null>(null);
@@ -30,21 +31,56 @@ export default function MetasPage() {
     
     setLoadingAdd(true);
     try {
-      await addDoc(collection(db, `users/${auth.currentUser.uid}/metas`), {
-        titulo,
-        valorAlvo: valor,
-        valorAtual: 0,
-        dataLimite: dataLimite || null,
-        criadoEm: new Date().toISOString(),
-      });
+      if (editMetaId) {
+        await updateDoc(doc(db, `users/${auth.currentUser.uid}/metas`, editMetaId), {
+          titulo,
+          valorAlvo: valor,
+          dataLimite: dataLimite || null,
+        });
+      } else {
+        await addDoc(collection(db, `users/${auth.currentUser.uid}/metas`), {
+          titulo,
+          valorAlvo: valor,
+          valorAtual: 0,
+          dataLimite: dataLimite || null,
+          criadoEm: new Date().toISOString(),
+        });
+      }
       await queryClient.invalidateQueries({ queryKey: ["metas"] });
       setTitulo("");
       setValorAlvo("");
       setDataLimite("");
+      setEditMetaId(null);
     } catch (err) {
       console.error(err);
     } finally {
       setLoadingAdd(false);
+    }
+  };
+
+  const handleEditClick = (meta: any) => {
+    setEditMetaId(meta.id);
+    setTitulo(meta.titulo);
+    const valorFormatado = (meta.valorAlvo || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+    setValorAlvo(maskCurrency(valorFormatado));
+    setDataLimite(meta.dataLimite || "");
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleCancelEdit = () => {
+    setEditMetaId(null);
+    setTitulo("");
+    setValorAlvo("");
+    setDataLimite("");
+  };
+
+  const handleDeleteMeta = async (id: string) => {
+    if (!auth.currentUser || !confirm("Deseja realmente excluir esta meta? Todo o histórico associado a ela será perdido.")) return;
+    try {
+      await deleteDoc(doc(db, `users/${auth.currentUser.uid}/metas`, id));
+      await queryClient.invalidateQueries({ queryKey: ["metas"] });
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -102,7 +138,25 @@ export default function MetasPage() {
                 {/* Indicador de Status Glow */}
                 <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-brand-orange to-brand-amber opacity-70 group-hover:opacity-100 transition-opacity"></div>
                 
-                <div className="flex justify-between items-start mb-5 relative z-10">
+                {/* Ações Rápidas (Editar/Excluir) */}
+                <div className="absolute top-4 right-4 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all z-20">
+                  <button 
+                    onClick={() => handleEditClick(meta)}
+                    className="p-1.5 rounded-md hover:bg-white/10 text-text-muted hover:text-white transition-all bg-black/20 backdrop-blur-md"
+                    title="Editar Meta"
+                  >
+                    <Pencil size={14} />
+                  </button>
+                  <button 
+                    onClick={() => handleDeleteMeta(meta.id)}
+                    className="p-1.5 rounded-md hover:bg-danger/20 text-text-muted hover:text-danger transition-all bg-black/20 backdrop-blur-md"
+                    title="Excluir Meta"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+
+                <div className="flex justify-between items-start mb-5 relative z-10 pr-16">
                   <div>
                     <h3 className="font-display font-bold text-xl text-text-primary flex items-center gap-2 tracking-tight group-hover:text-white transition-colors">
                       <Flag size={18} className="text-brand-orange" /> {meta.titulo}
@@ -211,14 +265,29 @@ export default function MetasPage() {
           )}
         </div>
 
-        {/* Formulário de Nova Meta */}
+        {/* Formulário de Nova/Editar Meta */}
         <div className="lg:sticky lg:top-8 h-fit">
-          <div className="bg-[linear-gradient(145deg,rgba(255,255,255,0.04)_0%,rgba(255,255,255,0.01)_100%)] backdrop-blur-2xl border border-white/10 rounded-2xl p-6 shadow-[0_32px_64px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.1)]">
+          <div className="bg-[linear-gradient(145deg,rgba(255,255,255,0.04)_0%,rgba(255,255,255,0.01)_100%)] backdrop-blur-2xl border border-white/10 rounded-2xl p-6 shadow-[0_32px_64px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.1)] relative">
+            
+            {editMetaId && (
+              <button
+                onClick={handleCancelEdit}
+                className="absolute top-6 right-6 text-text-muted hover:text-white p-1 rounded-md hover:bg-white/10 transition-colors"
+                title="Cancelar Edição"
+              >
+                <X size={18} />
+              </button>
+            )}
+
             <h3 className="font-display font-bold text-text-primary mb-6 flex items-center gap-2 tracking-tight">
               <div className="w-8 h-8 rounded-lg bg-brand-orange/10 flex items-center justify-center">
-                <Plus size={18} className="text-brand-orange" />
+                {editMetaId ? (
+                  <Pencil size={18} className="text-brand-orange" />
+                ) : (
+                  <Plus size={18} className="text-brand-orange" />
+                )}
               </div>
-              Nova Meta
+              {editMetaId ? "Editar Meta" : "Nova Meta"}
             </h3>
             
             <form onSubmit={handleAddMeta} className="space-y-5">
@@ -264,7 +333,7 @@ export default function MetasPage() {
                 disabled={loadingAdd || !titulo || !valorAlvo}
                 className="w-full bg-[linear-gradient(135deg,var(--orange),var(--amber))] shadow-[0_4px_16px_rgba(229,89,29,0.3),inset_0_1px_0_rgba(255,255,255,0.3)] hover:shadow-[0_6px_24px_rgba(229,89,29,0.4),inset_0_1px_0_rgba(255,255,255,0.4)] hover:-translate-y-0.5 active:scale-[0.98] disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none text-white font-bold py-4 rounded-xl transition-all duration-300 text-sm tracking-wide mt-2"
               >
-                {loadingAdd ? "Criando..." : "Criar Meta"}
+                {loadingAdd ? "Salvando..." : editMetaId ? "Atualizar Meta" : "Criar Meta"}
               </button>
             </form>
           </div>

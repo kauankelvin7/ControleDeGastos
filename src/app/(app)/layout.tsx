@@ -68,11 +68,25 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <Sidebar userProfile={profile} />
       
       <main className="flex-1 w-full pb-20 md:pb-0 flex flex-col relative z-10">
-        {/* Top Bar para Mobile / Global Actions */}
-        <div className="w-full h-16 border-b border-white/5 flex items-center justify-end px-4 md:px-8 shrink-0 sticky top-0 bg-black/40 backdrop-blur-2xl z-40 shadow-sm">
+        {/* Top Bar / Global Actions */}
+        <div className="w-full h-16 border-b border-white/5 flex items-center justify-between px-4 md:px-8 shrink-0 sticky top-0 bg-black/40 backdrop-blur-2xl z-40 shadow-sm">
+          
+          {/* Lado Esquerdo: Brand/Perfil (Visível no Mobile para preencher o vazio) */}
+          <div className="flex items-center gap-3 md:invisible">
+            <div className="w-8 h-8 rounded-lg bg-[linear-gradient(135deg,var(--orange),var(--amber))] flex items-center justify-center font-bold text-white shadow-[0_4px_10px_rgba(229,89,29,0.3)] text-xs">
+              {(profile?.nome || "K")[0].toUpperCase()}
+            </div>
+            <div className="flex flex-col">
+              <span className="text-[9px] text-text-muted uppercase tracking-widest font-bold">Bem-vindo</span>
+              <span className="font-display font-bold text-sm text-text-primary leading-tight flex items-center gap-1">
+                {profile?.nome?.split(' ')[0] || "Investidor"} <span className="animate-wave inline-block origin-bottom-right">👋</span>
+              </span>
+            </div>
+          </div>
+
+          {/* Lado Direito: Ações (Notificações, etc) */}
           <div className="flex items-center gap-4">
              <NotificationsPanel />
-             {/* Espaço reservado para ações globais futuras */}
           </div>
         </div>
         
