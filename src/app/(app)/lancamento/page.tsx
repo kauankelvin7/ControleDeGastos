@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRightLeft, Wallet, ShieldAlert, Target, ArrowLeft } from "lucide-react";
+import { ArrowRightLeft, Wallet, ShieldAlert, Target, ArrowLeft, HandCoins } from "lucide-react";
 
 export default function LancamentoHubPage() {
   const options = [
@@ -18,6 +18,14 @@ export default function LancamentoHubPage() {
       href: "/investimentos/novo",
       color: "text-success",
       bgHover: "hover:bg-success/10 hover:border-success/30",
+    },
+    {
+      title: "Receber Dividendo",
+      description: "Registre o recebimento de proventos e renda passiva.",
+      icon: HandCoins,
+      href: "/dividendos/novo",
+      color: "text-info",
+      bgHover: "hover:bg-info/10 hover:border-info/30",
     },
     {
       title: "Guardar Reserva",

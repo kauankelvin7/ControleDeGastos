@@ -1,19 +1,29 @@
 "use client";
 
-import { useAportes, useGastos } from "@/hooks/useFirebaseData";
+import { useAportes, useGastos, useDividendos } from "@/hooks/useFirebaseData";
 import { formatBRL } from "@/lib/utils";
 import { TrendingUp, ArrowDownCircle, ArrowUpCircle } from "lucide-react";
 import Link from "next/link";
 import PatrimonioChart from "@/components/dashboard/PatrimonioChart";
+import GastosChart from "@/components/dashboard/GastosChart";
 
 export default function DashboardPage() {
   const { data: aportes, isLoading: loadingAportes } = useAportes();
   const { data: gastos, isLoading: loadingGastos } = useGastos();
+  const { data: dividendos, isLoading: loadingDividendos } = useDividendos();
 
   const totalInvestido = aportes?.reduce((acc: number, cur: any) => acc + (cur.valorTotal || 0), 0) || 0;
   const gastosMes = gastos?.reduce((acc: number, cur: any) => acc + (cur.valor || 0), 0) || 0;
+  
+  // Calculate this month's dividends
+  const currentMonth = new Date().getMonth();
+  const currentYear = new Date().getFullYear();
+  const dividendosMes = dividendos?.filter((d: any) => {
+    const dDate = new Date(d.data);
+    return dDate.getMonth() === currentMonth && dDate.getFullYear() === currentYear;
+  }).reduce((acc: number, cur: any) => acc + (cur.valorTotal || 0), 0) || 0;
 
-  if (loadingAportes || loadingGastos) {
+  if (loadingAportes || loadingGastos || loadingDividendos) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin w-8 h-8 border-4 border-brand-orange border-t-transparent rounded-full shadow-[0_0_15px_var(--orange-dim)]"></div>
@@ -63,49 +73,60 @@ export default function DashboardPage() {
           <div className="relative z-10">
             <div className="text-brand-orange font-display text-sm font-medium mb-1 tracking-wide uppercase">Renda Mensal Gerada</div>
             <div className="font-mono font-bold text-3xl text-brand-orange drop-shadow-[0_0_16px_rgba(229,89,29,0.4)]">
-              {formatBRL(0)} <span className="text-sm font-display text-brand-orange/60 font-medium">/mês</span>
+              {formatBRL(dividendosMes)} <span className="text-sm font-display text-brand-orange/60 font-medium">/mês</span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Área de Gráficos e Lançamentos */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* Linha 1: Gráfico Patrimônio (2/3) + Gastos por Categoria (1/3) */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
         
-        {/* Gráfico */}
+        {/* Gráfico de Evolução */}
         <PatrimonioChart aportes={aportes || []} />
 
-        {/* Últimos Lançamentos */}
-        <div className="bg-[linear-gradient(145deg,rgba(255,255,255,0.02)_0%,transparent_100%)] backdrop-blur-xl border border-white/5 rounded-2xl p-6 shadow-[0_8px_32px_rgba(0,0,0,0.2)] transition-all duration-300 hover:border-white/10">
-          <div className="flex items-center justify-between mb-5">
-            <h3 className="font-display font-bold text-text-primary">Últimos Lançamentos</h3>
-            <Link href="/investimentos" className="text-xs font-semibold text-brand-orange hover:text-brand-orange/80 transition-colors drop-shadow-sm">
+        {/* Gráfico de Gastos por Categoria */}
+        <div className="bg-[linear-gradient(145deg,rgba(255,255,255,0.02)_0%,transparent_100%)] backdrop-blur-xl border border-white/5 rounded-2xl p-6 shadow-[0_8px_32px_rgba(0,0,0,0.2)] transition-all duration-300 hover:border-white/10 flex flex-col">
+          <div className="flex items-center justify-between mb-4">
+            <span className="text-text-secondary font-display font-medium tracking-wide">Gastos por Categoria</span>
+            <Link href="/gastos" className="text-xs font-semibold text-brand-orange hover:text-brand-orange/80 transition-colors">
               Ver todos
             </Link>
           </div>
-          
-          <div className="space-y-3">
-            {aportes?.slice(0, 4).map((aporte: any) => (
-              <div key={aporte.id} className="group/item flex items-center justify-between p-3 rounded-xl bg-white/[0.02] border border-white/5 transition-all duration-200 hover:bg-white/[0.04] hover:border-white/10 hover:-translate-y-[2px] hover:shadow-md cursor-pointer">
-                <div>
-                  <div className="font-mono font-bold text-sm text-text-primary tracking-wide">{aporte.ativo?.toUpperCase() || "ATIVO"}</div>
-                  <div className="font-display text-[11px] text-text-muted mt-0.5">{new Date(aporte.data).toLocaleDateString('pt-BR')}</div>
-                </div>
-                <div className="text-right">
-                  <div className="font-mono font-bold text-sm text-brand-orange drop-shadow-sm">{formatBRL(aporte.valorTotal || 0)}</div>
-                  <div className="font-display text-[11px] text-text-muted mt-0.5 uppercase tracking-wider">{aporte.tipo === 'compra' ? 'Compra' : 'Venda'}</div>
-                </div>
+          <GastosChart gastos={gastos || []} />
+        </div>
+      </div>
+
+      {/* Linha 2: Últimos Lançamentos (full width) */}
+      <div className="bg-[linear-gradient(145deg,rgba(255,255,255,0.02)_0%,transparent_100%)] backdrop-blur-xl border border-white/5 rounded-2xl p-6 shadow-[0_8px_32px_rgba(0,0,0,0.2)] transition-all duration-300 hover:border-white/10">
+        <div className="flex items-center justify-between mb-5">
+          <h3 className="font-display font-bold text-text-primary">Últimos Lançamentos</h3>
+          <Link href="/investimentos" className="text-xs font-semibold text-brand-orange hover:text-brand-orange/80 transition-colors drop-shadow-sm">
+            Ver todos
+          </Link>
+        </div>
+        
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          {aportes?.slice(0, 8).map((aporte: any) => (
+            <div key={aporte.id} className="group/item flex items-center justify-between p-3 rounded-xl bg-white/[0.02] border border-white/5 transition-all duration-200 hover:bg-white/[0.04] hover:border-white/10 hover:-translate-y-[2px] hover:shadow-md cursor-pointer">
+              <div>
+                <div className="font-mono font-bold text-sm text-text-primary tracking-wide">{aporte.ativo?.toUpperCase() || "ATIVO"}</div>
+                <div className="font-display text-[11px] text-text-muted mt-0.5">{new Date(aporte.data).toLocaleDateString('pt-BR')}</div>
               </div>
-            ))}
-            {(!aportes || aportes.length === 0) && (
-              <div className="text-center py-8 text-sm text-text-muted flex flex-col items-center gap-2 opacity-60">
-                <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center">
-                  <span className="text-lg">∅</span>
-                </div>
-                Nenhum lançamento encontrado.
+              <div className="text-right">
+                <div className="font-mono font-bold text-sm text-brand-orange drop-shadow-sm">{formatBRL(aporte.valorTotal || 0)}</div>
+                <div className="font-display text-[11px] text-text-muted mt-0.5 uppercase tracking-wider">{aporte.tipo === 'compra' ? 'Compra' : 'Venda'}</div>
               </div>
-            )}
-          </div>
+            </div>
+          ))}
+          {(!aportes || aportes.length === 0) && (
+            <div className="col-span-full text-center py-8 text-sm text-text-muted flex flex-col items-center gap-2 opacity-60">
+              <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center">
+                <span className="text-lg">∅</span>
+              </div>
+              Nenhum lançamento encontrado.
+            </div>
+          )}
         </div>
       </div>
     </div>

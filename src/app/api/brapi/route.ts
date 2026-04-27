@@ -14,8 +14,10 @@ export async function GET(request: Request) {
   }
 
   try {
+    // Supports comma-separated tickers for batch quotes (e.g. MXRF11,PETR4)
+    const tickerList = ticker.toUpperCase().split(',').map(t => t.trim()).join(',');
     const res = await fetch(
-      `https://brapi.dev/api/quote/${ticker.toUpperCase()}?token=${BRAPI_TOKEN}&modules=dividends`,
+      `https://brapi.dev/api/quote/${tickerList}?token=${BRAPI_TOKEN}&modules=dividends`,
       { next: { revalidate: 300 } } // Cache por 5 minutos nativo do Next.js
     );
 

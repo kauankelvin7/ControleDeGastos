@@ -15,6 +15,7 @@ import {
   Legend,
 } from "chart.js";
 import { Line } from "react-chartjs-2";
+import { useCotacoes } from "@/hooks/useCotacoes";
 
 ChartJS.register(
   CategoryScale,
@@ -32,13 +33,21 @@ interface PatrimonioChartProps {
 }
 
 export default function PatrimonioChart({ aportes }: PatrimonioChartProps) {
-  const [periodoFiltro, setPeriodoFiltro] = useState<number>(3); // 3M, 6M, 12M, 0 (Tudo)
+  const [periodoFiltro, setPeriodoFiltro] = useState<number>(3);
+
+  // Extrai tickers únicos da carteira para buscar cotações reais
+  const tickers = useMemo(() => {
+    if (!aportes) return [];
+    return [...new Set(aportes.map((a) => (a.ativo || "").toUpperCase()).filter(Boolean))];
+  }, [aportes]);
+
+  const { data: cotacoes, isLoading: loadingCotacoes } = useCotacoes(tickers);
 
   const chartData = useMemo(() => {
     if (!aportes || aportes.length === 0) return { labels: [], patrimonio: [], investido: [] };
 
-    // 1. Sort by date ASC (oldest first)
-    const sortedAportes = [...aportes].sort((a, b) => 
+    // Sort ASC
+    const sortedAportes = [...aportes].sort((a, b) =>
       new Date(a.data).getTime() - new Date(b.data).getTime()
     );
 
@@ -51,51 +60,62 @@ export default function PatrimonioChart({ aportes }: PatrimonioChartProps) {
       const mesKey = format(date, "MMM/yy", { locale: ptBR });
       const timestamp = date.getTime();
 
-      // Initialize asset in inventory
       const ativo = aporte.ativo || "UNKNOWN";
       if (!inventory[ativo]) inventory[ativo] = { cotas: 0, lastPrice: 0 };
 
       if (aporte.tipo === "venda") {
-        inventory[ativo].cotas -= (aporte.quantidade || 0);
-        investidoLiquido -= (aporte.valorTotal || 0);
+        inventory[ativo].cotas -= aporte.quantidade || 0;
+        investidoLiquido -= aporte.valorTotal || 0;
       } else {
-        inventory[ativo].cotas += (aporte.quantidade || 0);
-        investidoLiquido += (aporte.valorTotal || 0);
+        inventory[ativo].cotas += aporte.quantidade || 0;
+        investidoLiquido += aporte.valorTotal || 0;
       }
 
-      inventory[ativo].lastPrice = (aporte.valor || 0);
+      // Histórico: usa preço do aporte para meses passados
+      inventory[ativo].lastPrice = aporte.valor || 0;
 
-      // Calculate current patrimonio based on inventory * lastPrice
       let patrimonioAtual = 0;
-      Object.values(inventory).forEach(inv => {
+      Object.entries(inventory).forEach(([ticker, inv]) => {
         if (inv.cotas > 0) {
           patrimonioAtual += inv.cotas * inv.lastPrice;
         }
       });
 
-      // Update or create the month record
       porMes[mesKey] = {
         label: mesKey,
         patrimonio: patrimonioAtual,
-        investido: investidoLiquido > 0 ? investidoLiquido : 0, // Prevent negative if data is weird
+        investido: investidoLiquido > 0 ? investidoLiquido : 0,
         timestamp,
       };
     });
 
-    // Extract ordered array of months
-    let dadosProcessados = Object.values(porMes).sort((a, b) => a.timestamp - b.timestamp);
+    // Override do último ponto com cotação real da Brapi (se disponível)
+    if (cotacoes && Object.keys(cotacoes).length > 0) {
+      const sortedKeys = Object.keys(porMes).sort((a, b) => porMes[a].timestamp - porMes[b].timestamp);
+      const ultimoMes = sortedKeys[sortedKeys.length - 1];
+      if (ultimoMes) {
+        let patrimonioReal = 0;
+        Object.entries(inventory).forEach(([ticker, inv]) => {
+          if (inv.cotas > 0) {
+            const precoReal = cotacoes[ticker] ?? inv.lastPrice;
+            patrimonioReal += inv.cotas * precoReal;
+          }
+        });
+        porMes[ultimoMes].patrimonio = patrimonioReal;
+      }
+    }
 
-    // Apply Filter
+    let dadosProcessados = Object.values(porMes).sort((a, b) => a.timestamp - b.timestamp);
     if (periodoFiltro > 0) {
       dadosProcessados = dadosProcessados.slice(-periodoFiltro);
     }
 
     return {
-      labels: dadosProcessados.map(d => d.label),
-      patrimonio: dadosProcessados.map(d => d.patrimonio),
-      investido: dadosProcessados.map(d => d.investido),
+      labels: dadosProcessados.map((d) => d.label),
+      patrimonio: dadosProcessados.map((d) => d.patrimonio),
+      investido: dadosProcessados.map((d) => d.investido),
     };
-  }, [aportes, periodoFiltro]);
+  }, [aportes, periodoFiltro, cotacoes]);
 
   if (!aportes || aportes.length === 0) {
     return (
@@ -152,14 +172,8 @@ export default function PatrimonioChart({ aportes }: PatrimonioChartProps) {
   const options: any = {
     responsive: true,
     maintainAspectRatio: false,
-    interaction: {
-      mode: "index",
-      intersect: false,
-    },
-    animation: {
-      duration: 600,
-      easing: "easeInOutQuart",
-    },
+    interaction: { mode: "index", intersect: false },
+    animation: { duration: 600, easing: "easeInOutQuart" },
     plugins: {
       legend: { display: false },
       tooltip: {
@@ -174,10 +188,7 @@ export default function PatrimonioChart({ aportes }: PatrimonioChartProps) {
         displayColors: false,
         callbacks: {
           label: (item: any) => {
-            const val = item.raw.toLocaleString("pt-BR", {
-              style: "currency",
-              currency: "BRL",
-            });
+            const val = item.raw.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
             return ` ${item.dataset.label}: ${val}`;
           },
           afterBody: (items: any) => {
@@ -185,10 +196,7 @@ export default function PatrimonioChart({ aportes }: PatrimonioChartProps) {
             const inv = items[1]?.raw ?? 0;
             const ganho = pat - inv;
             if (ganho <= 0) return [];
-            const ganhoFmt = ganho.toLocaleString("pt-BR", {
-              style: "currency",
-              currency: "BRL",
-            });
+            const ganhoFmt = ganho.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
             return ["", ` Ganho: +${ganhoFmt}`];
           },
         },
@@ -222,7 +230,19 @@ export default function PatrimonioChart({ aportes }: PatrimonioChartProps) {
   return (
     <div className="lg:col-span-2 bg-[linear-gradient(145deg,rgba(255,255,255,0.02)_0%,transparent_100%)] backdrop-blur-xl border border-white/5 rounded-2xl p-6 shadow-[0_8px_32px_rgba(0,0,0,0.2)] transition-all duration-300 hover:border-white/10 flex flex-col">
       <div className="flex justify-between items-center mb-4">
-        <span className="text-text-secondary font-display font-medium tracking-wide">Evolução do Patrimônio</span>
+        <div className="flex items-center gap-3">
+          <span className="text-text-secondary font-display font-medium tracking-wide">Evolução do Patrimônio</span>
+          {loadingCotacoes && (
+            <span className="text-[10px] font-display text-text-muted bg-white/5 px-2 py-0.5 rounded-full animate-pulse border border-white/5">
+              Buscando cotações...
+            </span>
+          )}
+          {cotacoes && Object.keys(cotacoes).length > 0 && !loadingCotacoes && (
+            <span className="text-[10px] font-display text-success bg-success/10 px-2 py-0.5 rounded-full border border-success/20">
+              ● Cotações reais
+            </span>
+          )}
+        </div>
         <div className="flex gap-1 bg-black/30 p-1 rounded-lg border border-white/5">
           {[
             { label: "3M", value: 3 },
