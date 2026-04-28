@@ -92,7 +92,7 @@ const getCutoffDate = (months: number): Date =>
 
 /** Lê o valor de um dataset pelo label, evitando dependência de índice fixo. */
 function getTooltipValueByLabel(
-  items: TooltipItem<"line">[],
+  items: TooltipItem<any>[],
   label: string
 ): number {
   return Number(items.find((i) => i.dataset.label === label)?.raw ?? 0);
@@ -330,12 +330,12 @@ export default function PatrimonioChart({ aportes }: PatrimonioChartProps) {
             boxWidth: 8,
             boxHeight: 8,
             callbacks: {
-              title: (items: TooltipItem<"line">[]) => items[0]?.label ?? "",
-              label: (item: TooltipItem<"line">) => {
+              title: (items: TooltipItem<any>[]) => items[0]?.label ?? "",
+              label: (item: TooltipItem<any>) => {
                 const val = fmt(Number(item.raw ?? 0));
                 return `  ${item.dataset.label}: ${val}`;
               },
-              afterBody: (items: TooltipItem<"line">[]) => {
+              afterBody: (items: TooltipItem<any>[]) => {
                 // Identifica por label em vez de índice fixo — robusto a reordenações
                 const pat = getTooltipValueByLabel(items, "Patrimônio");
                 const inv = getTooltipValueByLabel(items, "Investido");

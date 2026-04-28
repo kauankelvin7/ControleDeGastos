@@ -11,17 +11,11 @@ import {
 } from "chart.js";
 import { Doughnut } from "react-chartjs-2";
 import { formatBRL } from "@/lib/utils";
+import type { Gasto } from "@/types/dashboard";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
-
-interface Gasto {
-  id: string;
-  categoria?: string;
-  valor?: number;
-  [key: string]: unknown;
-}
 
 // ─── Constantes ───────────────────────────────────────────────────────────────
 
