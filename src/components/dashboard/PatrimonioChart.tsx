@@ -9,6 +9,7 @@ import {
   LinearScale,
   PointElement,
   LineElement,
+  LineController,
   Filler,
   Tooltip,
   Legend,
@@ -23,6 +24,7 @@ Chart.register(
   LinearScale,
   PointElement,
   LineElement,
+  LineController,
   Filler,
   Tooltip,
   Legend

@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import {
   Chart as ChartJS,
   ArcElement,
+  DoughnutController,
   Tooltip,
   Legend,
   ChartOptions,
@@ -13,7 +14,7 @@ import { Doughnut } from "react-chartjs-2";
 import { formatBRL } from "@/lib/utils";
 import type { Gasto } from "@/types/dashboard";
 
-ChartJS.register(ArcElement, Tooltip, Legend);
+ChartJS.register(ArcElement, DoughnutController, Tooltip, Legend);
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
