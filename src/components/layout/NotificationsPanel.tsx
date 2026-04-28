@@ -62,10 +62,10 @@ export default function NotificationsPanel() {
           {/* Overlay invisível para fechar ao clicar fora */}
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
           
-          <div className="absolute right-0 mt-3 w-85 sm:w-96 bg-black/60 backdrop-blur-2xl border border-white/10 rounded-[24px] shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-50 overflow-hidden animate-in fade-in zoom-in-95 slide-in-from-top-4 duration-300">
+          <div className="absolute right-0 mt-3 w-85 sm:w-96 bg-[#0a0907] border border-white/10 rounded-[24px] shadow-[0_20px_50px_rgba(0,0,0,0.8)] z-50 overflow-hidden animate-in fade-in zoom-in-95 slide-in-from-top-4 duration-300">
             
             {/* Header do Painel */}
-            <div className="p-5 border-b border-white/5 flex justify-between items-center bg-white/[0.02]">
+            <div className="p-5 border-b border-white/5 flex justify-between items-center bg-white/[0.03]">
               <h3 className="font-display font-bold text-text-primary flex items-center gap-2 tracking-tight">
                 <Bell size={16} className="text-brand-orange" /> Notificações
               </h3>
@@ -87,8 +87,8 @@ export default function NotificationsPanel() {
                     key={notif.id} 
                     className={`group p-5 border-b border-white/5 last:border-0 transition-all duration-300 flex gap-4 items-start cursor-pointer ${
                       notif.lida 
-                      ? 'opacity-40 hover:opacity-100 bg-transparent' 
-                      : 'bg-white/[0.01] hover:bg-white/[0.04]'
+                      ? 'opacity-75 hover:opacity-100 bg-black/10' 
+                      : 'bg-white/[0.02] hover:bg-white/[0.05]'
                     }`}
                     onClick={() => !notif.lida && markAsRead(notif.id)}
                   >
