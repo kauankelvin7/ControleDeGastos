@@ -1,5 +1,15 @@
 import Link from "next/link";
-import { ArrowRightLeft, Wallet, ShieldAlert, Target, ArrowLeft, HandCoins, LucideIcon } from "lucide-react";
+import {
+  ArrowRightLeft,
+  Wallet,
+  ShieldAlert,
+  Target,
+  ArrowLeft,
+  HandCoins,
+  TrendingUp,
+  LucideIcon,
+  ChevronRight
+} from "lucide-react";
 
 // ─── types ────────────────────────────────────────────────────────────────────
 
@@ -9,82 +19,95 @@ interface LancamentoOption {
   icon: LucideIcon;
   href: string;
   colorClass: string;
-  hoverClass: string;
-  glowColor: string; // valor literal para drop-shadow
+  iconBgClass: string;
 }
 
 // ─── static data (fora do componente — não recria a cada render) ──────────────
 
 const OPTIONS: LancamentoOption[] = [
   {
-    title: "Registrar Gasto",
-    description: "Adicione uma nova despesa do seu dia a dia.",
+    title: "Gasto",
+    description: "Registre uma nova saída no seu fluxo de caixa.",
     icon: ArrowRightLeft,
     href: "/gastos/novo",
-    colorClass: "text-danger",
-    hoverClass: "hover:bg-danger/10 hover:border-danger/30",
-    glowColor: "rgba(248,113,113,0.6)",
+    colorClass: "text-red-400",
+    iconBgClass: "bg-red-500/10 border-red-500/20",
   },
   {
-    title: "Comprar / Vender Ativo",
-    description: "Registre novos investimentos na sua carteira.",
-    icon: Wallet,
-    href: "/investimentos/novo",
-    colorClass: "text-success",
-    hoverClass: "hover:bg-success/10 hover:border-success/30",
-    glowColor: "rgba(74,222,128,0.6)",
+    title: "Receita",
+    description: "Sincronize uma nova entrada ou salário.",
+    icon: TrendingUp,
+    href: "/receitas/novo",
+    colorClass: "text-emerald-400",
+    iconBgClass: "bg-emerald-500/10 border-emerald-500/20",
   },
   {
-    title: "Receber Dividendo",
-    description: "Registre o recebimento de proventos e renda passiva.",
+    title: "Dividendo",
+    description: "Lance proventos e renda passiva recebida.",
     icon: HandCoins,
     href: "/dividendos/novo",
-    colorClass: "text-info",
-    hoverClass: "hover:bg-info/10 hover:border-info/30",
-    glowColor: "rgba(56,189,248,0.6)",
+    colorClass: "text-sky-400",
+    iconBgClass: "bg-sky-500/10 border-sky-500/20",
   },
   {
-    title: "Guardar Reserva",
-    description: "Adicione dinheiro para sua segurança financeira.",
+    title: "Investimento",
+    description: "Atualize sua carteira com novos aportes.",
+    icon: Wallet,
+    href: "/investimentos/novo",
+    colorClass: "text-amber-400",
+    iconBgClass: "bg-amber-500/10 border-amber-500/20",
+  },
+  {
+    title: "Reserva",
+    description: "Fortaleça sua segurança financeira.",
     icon: ShieldAlert,
     href: "/reserva",
-    colorClass: "text-brand-orange",
-    hoverClass: "hover:bg-brand-orange/10 hover:border-brand-orange/30",
-    glowColor: "rgba(229,89,29,0.6)",
+    colorClass: "text-orange-400",
+    iconBgClass: "bg-orange-500/10 border-orange-500/20",
   },
   {
-    title: "Aportar em Meta",
-    description: "Coloque dinheiro em um dos seus objetivos.",
+    title: "Meta",
+    description: "Aporte dinheiro em um dos seus sonhos.",
     icon: Target,
     href: "/metas",
-    colorClass: "text-brand-amber",
-    hoverClass: "hover:bg-brand-amber/10 hover:border-brand-amber/30",
-    glowColor: "rgba(251,191,36,0.6)",
+    colorClass: "text-purple-400",
+    iconBgClass: "bg-purple-500/10 border-purple-500/20",
   },
 ];
 
 // ─── card ─────────────────────────────────────────────────────────────────────
 
-function OptionCard({ opt }: { opt: LancamentoOption }) {
+function OptionCard({ opt, index }: { opt: LancamentoOption, index: number }) {
   const Icon = opt.icon;
   return (
     <Link
       href={opt.href}
       aria-label={opt.title}
-      className={`group flex flex-col items-center text-center p-8 rounded-3xl bg-[linear-gradient(145deg,rgba(255,255,255,0.04)_0%,rgba(255,255,255,0.01)_100%)] backdrop-blur-2xl border border-white/5 shadow-[0_8px_32px_rgba(0,0,0,0.2)] transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_16px_48px_rgba(0,0,0,0.4)] ${opt.hoverClass}`}
+      style={{ animationDelay: `${index * 100}ms` }}
+      className="group relative flex items-center gap-6 p-6 sm:p-8 rounded-[2.5rem] bg-white/[0.01] border border-white/5 hover:bg-white/[0.03] hover:border-white/10 transition-all duration-500 hover:-translate-y-1.5 shadow-xl animate-in fade-in slide-in-from-bottom-4"
     >
-      <div
-        className={`w-20 h-20 rounded-2xl bg-black/30 border border-white/5 flex items-center justify-center mb-6 shadow-inner group-hover:scale-110 transition-transform duration-500 ${opt.colorClass}`}
-      >
-        <Icon
-          size={40}
-          style={{ filter: `drop-shadow(0 0 12px ${opt.glowColor})` }}
-        />
+      {/* Decorative Gradient Background */}
+      <div className={`absolute inset-0 bg-gradient-to-br from-white/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-[2.5rem]`} />
+      
+      {/* Icon Container */}
+      <div className={`w-16 h-16 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl flex items-center justify-center border transition-all duration-500 group-hover:scale-110 shadow-inner relative z-10 ${opt.iconBgClass} ${opt.colorClass}`}>
+        <Icon size={32} className="sm:size-40" strokeWidth={1.5} />
       </div>
-      <h3 className="font-display font-bold text-2xl text-text-primary tracking-tight mb-2 group-hover:text-white transition-colors">
-        {opt.title}
-      </h3>
-      <p className="text-text-muted text-sm px-4">{opt.description}</p>
+
+      {/* Text Info */}
+      <div className="flex-1 min-w-0 relative z-10">
+        <h3 className="text-xl font-bold text-white/90 tracking-tight mb-1 group-hover:text-white transition-colors">
+          {opt.title}
+        </h3>
+        <p className="text-sm font-medium text-white/30 leading-relaxed max-w-[200px] sm:max-w-none line-clamp-2">
+          {opt.description}
+        </p>
+      </div>
+
+      {/* Arrow Indicator */}
+      <div className="hidden sm:flex w-10 h-10 rounded-full bg-white/[0.03] border border-white/5 items-center justify-center text-white/10 group-hover:text-white/40 group-hover:bg-white/[0.06] transition-all duration-500 -translate-x-2 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 relative z-10">
+        <ChevronRight size={20} />
+      </div>
     </Link>
   );
 }
@@ -92,45 +115,39 @@ function OptionCard({ opt }: { opt: LancamentoOption }) {
 // ─── page ─────────────────────────────────────────────────────────────────────
 
 export default function LancamentoHubPage() {
-  // Separa os pares do último item (caso o total seja ímpar)
-  const isOdd = OPTIONS.length % 2 !== 0;
-  const pairs = isOdd ? OPTIONS.slice(0, -1) : OPTIONS;
-  const lastItem = isOdd ? OPTIONS[OPTIONS.length - 1] : null;
-
   return (
-    <div className="animate-in fade-in zoom-in-95 duration-500 max-w-4xl mx-auto h-full flex flex-col justify-center py-10">
-
+    <div className="animate-in fade-in zoom-in-95 duration-700 max-w-5xl mx-auto py-10 lg:py-20 px-4">
       {/* Header */}
-      <header className="mb-10 text-center relative">
-        <Link
-          href="/dashboard"
-          aria-label="Voltar para o dashboard"
-          className="absolute left-0 top-1/2 -translate-y-1/2 sm:top-0 sm:translate-y-0 w-10 h-10 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 hover:-translate-y-0.5 flex items-center justify-center text-text-muted hover:text-text-primary transition-all duration-300 shadow-sm backdrop-blur-md"
-        >
-          <ArrowLeft size={20} />
-        </Link>
-
-        <h1 className="font-display font-bold text-4xl text-text-primary tracking-tight drop-shadow-md">
-          Novo Lançamento
+      <header className="mb-16 text-center max-w-2xl mx-auto">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.03] border border-white/5 text-[10px] font-bold uppercase tracking-widest text-white/30 mb-6">
+           <div className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse" />
+           Novo Registro
+        </div>
+        <h1 className="text-4xl lg:text-5xl font-bold text-white/95 tracking-tighter drop-shadow-sm mb-4">
+          Qual o fluxo de hoje?
         </h1>
-        <p className="text-text-muted mt-3 max-w-md mx-auto text-lg">
-          Para onde vai esse dinheiro? Escolha o tipo de registro que deseja realizar.
+        <p className="text-sm lg:text-base font-medium text-white/40 leading-relaxed px-4">
+          Escolha uma das categorias abaixo para registrar uma movimentação e manter seu dashboard atualizado em tempo real.
         </p>
       </header>
 
-      {/* Grid — pares normais */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 px-4 sm:px-0">
-        {pairs.map((opt) => (
-          <OptionCard key={opt.href} opt={opt} />
+      {/* Grid — Optimized for Premium feel */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
+        {OPTIONS.map((opt, idx) => (
+          <OptionCard key={opt.href} opt={opt} index={idx} />
         ))}
-
-        {/* Último item ímpar — centralizado em coluna única */}
-        {lastItem && (
-          <div className="sm:col-span-2 sm:max-w-sm sm:mx-auto w-full">
-            <OptionCard key={lastItem.href} opt={lastItem} />
-          </div>
-        )}
       </div>
+
+      {/* Footer / Back Link */}
+      <footer className="mt-16 text-center">
+        <Link
+          href="/dashboard"
+          className="inline-flex items-center gap-2.5 text-[11px] font-bold uppercase tracking-[0.2em] text-white/20 hover:text-white/60 transition-all group"
+        >
+          <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
+          Voltar ao Dashboard
+        </Link>
+      </footer>
     </div>
   );
 }

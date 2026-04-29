@@ -3,22 +3,24 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { collection, addDoc, doc, updateDoc } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
-import { Wallet, ArrowLeft } from "lucide-react";
+import { Wallet, ArrowLeft, CheckCircle2, TrendingUp, AlertCircle } from "lucide-react";
 import Link from "next/link";
-import { maskCurrency, parseCurrency } from "@/lib/utils";
+import { maskCurrency, parseCurrency, formatBRL } from "@/lib/utils";
 import { useQueryClient } from "@tanstack/react-query";
 import { useGetDoc } from "@/hooks/useFirebaseData";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 
-export default function NovoInvestimentoPage() {
+function NovoInvestimentoForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
   const editId = searchParams.get("id");
+  const isEditMode = Boolean(editId);
   
   const { data: editData, isLoading: loadingEdit } = useGetDoc("aportes", editId);
 
   const [loading, setLoading] = useState(false);
+  const [globalError, setGlobalError] = useState<string | null>(null);
   const [ativo, setAtivo] = useState("");
   const [quantidade, setQuantidade] = useState("1");
   const [valor, setValor] = useState("");
@@ -27,20 +29,29 @@ export default function NovoInvestimentoPage() {
 
   useEffect(() => {
     if (editData) {
-      const data = editData as any;
-      setAtivo(data.ativo || "");
-      setQuantidade(String(data.quantidade || "1"));
-      // Formata o valor numérico de volta para a máscara de string
-      const valorFormatado = (data.valor || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+      const d = editData as any;
+      setAtivo(d.ativo || "");
+      setQuantidade(String(d.quantidade || "1"));
+      const valorFormatado = (d.valor || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
       setValor(maskCurrency(valorFormatado));
-      setTipo(data.tipo || "compra");
-      setData(data.data?.split("T")[0] || new Date().toISOString().split("T")[0]);
+      setTipo(d.tipo || "compra");
+      setData(d.data?.split("T")[0] || new Date().toISOString().split("T")[0]);
     }
   }, [editData]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!auth.currentUser || !ativo || !valor || !quantidade) return;
+    setGlobalError(null);
+    
+    if (!auth.currentUser) {
+      setGlobalError("Sessão expirada. Faça login novamente.");
+      return;
+    }
+
+    if (!ativo || !valor || !quantidade) {
+      setGlobalError("Preencha todos os campos obrigatórios.");
+      return;
+    }
 
     setLoading(true);
     try {
@@ -69,139 +80,213 @@ export default function NovoInvestimentoPage() {
 
       await queryClient.invalidateQueries({ queryKey: ["aportes"] });
       router.push("/investimentos");
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      alert("Erro ao salvar investimento");
+      setGlobalError(err.message || "Erro ao salvar investimento");
       setLoading(false);
     }
   };
 
   if (loadingEdit) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin w-8 h-8 border-4 border-brand-orange border-t-transparent rounded-full"></div>
+      <div className="flex flex-col items-center justify-center h-[60vh] gap-4" aria-label="Carregando">
+        <div className="w-12 h-12 rounded-2xl bg-white/[0.01] border border-white/5 flex items-center justify-center animate-pulse">
+           <div className="w-8 h-8 border-4 border-orange-500/20 border-t-orange-500 rounded-full animate-spin shadow-[0_0_20px_rgba(249,115,22,0.1)]" />
+        </div>
+        <span className="text-[10px] font-bold uppercase tracking-widest text-white/20">Preparando Ativo</span>
       </div>
     );
   }
 
+  const totalOperacao = parseCurrency(valor) * Number(quantidade || 0);
+
   return (
-    <div className="animate-in fade-in duration-500 max-w-2xl mx-auto">
-      <header className="mb-8 flex items-center gap-4">
+    <div className="animate-in fade-in zoom-in-95 duration-700 max-w-xl mx-auto pb-12">
+      
+      {/* Header */}
+      <header className="mb-10 flex items-center gap-5 px-2">
         <Link 
           href="/investimentos" 
-          className="w-10 h-10 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 hover:-translate-y-0.5 flex items-center justify-center text-text-muted hover:text-text-primary transition-all duration-300 shadow-sm backdrop-blur-md"
+          aria-label="Voltar"
+          className="group w-12 h-12 rounded-2xl bg-white/[0.03] border border-white/10 hover:bg-white/[0.06] hover:border-white/20 flex items-center justify-center text-white/40 hover:text-white transition-all duration-300 shadow-xl backdrop-blur-md"
         >
-          <ArrowLeft size={20} />
+          <ArrowLeft size={22} className="group-hover:-translate-x-1 transition-transform" />
         </Link>
         <div>
-          <h1 className="font-display font-bold text-3xl text-text-primary flex items-center gap-3 drop-shadow-md tracking-tight">
-            <Wallet className="text-brand-orange drop-shadow-[0_0_8px_rgba(229,89,29,0.5)]" size={28} />
-            Novo Lançamento
+          <h1 className="text-3xl font-bold tracking-tight text-white/95 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center border border-orange-500/20 shadow-[0_0_15px_rgba(249,115,22,0.1)]">
+              <Wallet className="text-orange-400" size={22} />
+            </div>
+            {isEditMode ? "Editar Ordem" : "Nova Ordem"}
           </h1>
-          <p className="text-text-muted mt-1">Registre uma nova compra ou venda de ativos.</p>
+          <p className="text-sm font-medium text-white/40 mt-1.5 ml-1">
+            {isEditMode ? "Atualize os dados da sua operação." : "Registre uma nova compra ou venda de ativos."}
+          </p>
         </div>
       </header>
 
+      {/* Form Card */}
       <form 
         onSubmit={handleSubmit} 
-        className="bg-[linear-gradient(145deg,rgba(255,255,255,0.03)_0%,rgba(255,255,255,0.01)_100%)] backdrop-blur-2xl border border-white/5 rounded-2xl p-6 md:p-8 shadow-[0_32px_64px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.1)] space-y-6 relative overflow-hidden"
+        noValidate
+        className="relative bg-gradient-to-br from-white/[0.03] to-transparent backdrop-blur-3xl border border-white/5 rounded-[2.5rem] p-8 lg:p-10 shadow-2xl space-y-8 overflow-hidden"
       >
-        
-        {/* Seletor de Tipo Compra/Venda */}
-        <div className="flex p-1.5 bg-black/20 backdrop-blur-md rounded-xl border border-white/5 shadow-inner">
-          <button
-            type="button"
-            onClick={() => setTipo("compra")}
-            className={`flex-1 py-3 text-sm font-bold font-display rounded-lg transition-all duration-300 ${
-              tipo === "compra" 
-              ? "bg-[linear-gradient(135deg,var(--success),#22c55e)] text-black shadow-[0_4px_12px_rgba(74,222,128,0.3),inset_0_1px_0_rgba(255,255,255,0.3)]" 
-              : "text-text-muted hover:text-text-secondary hover:bg-white/5"
-            }`}
-          >
-            Compra
-          </button>
-          <button
-            type="button"
-            onClick={() => setTipo("venda")}
-            className={`flex-1 py-3 text-sm font-bold font-display rounded-lg transition-all duration-300 ${
-              tipo === "venda" 
-              ? "bg-[linear-gradient(135deg,var(--danger),#ef4444)] text-white shadow-[0_4px_12px_rgba(248,113,113,0.3),inset_0_1px_0_rgba(255,255,255,0.3)]" 
-              : "text-text-muted hover:text-text-secondary hover:bg-white/5"
-            }`}
-          >
-            Venda
-          </button>
-        </div>
+        {/* Subtle Decorative Background Element */}
+        <TrendingUp
+          size={200}
+          className="absolute -right-12 -top-12 text-white/[0.01] pointer-events-none select-none rotate-12"
+          aria-hidden
+        />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="md:col-span-2">
-            <label className="text-xs font-display font-bold text-text-secondary uppercase tracking-wider px-1 mb-2 block">Ticker do Ativo</label>
+        <div className="space-y-8 relative z-10">
+          
+          {/* Compra/Venda Switcher */}
+          <div className="flex p-1.5 bg-black/20 backdrop-blur-md rounded-2xl border border-white/5 shadow-inner">
+            <button
+              type="button"
+              onClick={() => setTipo("compra")}
+              className={`flex-1 py-4 text-[11px] font-bold uppercase tracking-widest rounded-xl transition-all duration-500 ${
+                tipo === "compra" 
+                ? "bg-emerald-500 text-black shadow-lg shadow-emerald-500/20" 
+                : "text-white/20 hover:text-white/40 hover:bg-white/5"
+              }`}
+            >
+              Compra
+            </button>
+            <button
+              type="button"
+              onClick={() => setTipo("venda")}
+              className={`flex-1 py-4 text-[11px] font-bold uppercase tracking-widest rounded-xl transition-all duration-500 ${
+                tipo === "venda" 
+                ? "bg-red-500 text-white shadow-lg shadow-red-500/20" 
+                : "text-white/20 hover:text-white/40 hover:bg-white/5"
+              }`}
+            >
+              Venda
+            </button>
+          </div>
+
+          {/* Ativo Ticker */}
+          <div className="group">
+            <label className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em] px-1 mb-3 block">Código do Ativo</label>
             <input
               type="text"
               required
+              autoComplete="off"
               value={ativo}
-              onChange={(e) => setAtivo(e.target.value.toUpperCase())}
-              placeholder="Ex: MXRF11, PETR4"
-              className="w-full bg-black/20 border border-white/10 shadow-[inset_0_2px_4px_rgba(0,0,0,0.2)] rounded-xl px-4 py-4 text-text-primary font-mono text-xl focus:outline-none focus:border-brand-orange focus:bg-black/30 focus:shadow-[inset_0_2px_4px_rgba(0,0,0,0.2),0_0_0_3px_rgba(229,89,29,0.2)] hover:border-white/20 transition-all duration-300 uppercase placeholder:text-text-disabled"
+              onChange={(e) => setAtivo(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ""))}
+              placeholder="Ex: PETR4, MXRF11"
+              className="w-full bg-white/[0.02] border border-white/5 rounded-2xl px-6 py-5 text-white font-mono text-2xl tracking-tight focus:outline-none focus:bg-white/[0.04] focus:border-white/20 transition-all duration-300 placeholder:text-white/10"
             />
           </div>
 
-          <div>
-            <label className="text-xs font-display font-bold text-text-secondary uppercase tracking-wider px-1 mb-2 block">Preço por Cota</label>
-            <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-text-disabled font-bold text-lg">R$</span>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Preço Unitário */}
+            <div className="group">
+              <label className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em] px-1 mb-3 block">Preço por Cota</label>
+              <div className="relative">
+                <span className="absolute left-6 top-1/2 -translate-y-1/2 text-white/20 font-mono font-bold text-xl select-none">R$</span>
+                <input
+                  type="text"
+                  inputMode="decimal"
+                  required
+                  value={valor}
+                  onChange={(e) => setValor(maskCurrency(e.target.value))}
+                  placeholder="0,00"
+                  className="w-full bg-white/[0.02] border border-white/5 rounded-2xl pl-16 pr-6 py-5 text-white font-mono text-2xl tracking-tight focus:outline-none focus:bg-white/[0.04] focus:border-white/20 transition-all duration-300 placeholder:text-white/10"
+                />
+              </div>
+            </div>
+
+            {/* Quantidade */}
+            <div className="group">
+              <label className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em] px-1 mb-3 block">Quantidade</label>
               <input
-                type="text"
+                type="number"
+                min="1"
                 required
-                value={valor}
-                onChange={(e) => setValor(maskCurrency(e.target.value))}
-                placeholder="0,00"
-                className="w-full bg-black/20 border border-white/10 shadow-[inset_0_2px_4px_rgba(0,0,0,0.2)] rounded-xl pl-12 pr-4 py-4 text-text-primary font-mono text-lg focus:outline-none focus:border-brand-orange focus:bg-black/30 focus:shadow-[inset_0_2px_4px_rgba(0,0,0,0.2),0_0_0_3px_rgba(229,89,29,0.2)] hover:border-white/20 transition-all duration-300 placeholder:text-text-disabled"
+                value={quantidade}
+                onChange={(e) => setQuantidade(e.target.value)}
+                placeholder="1"
+                className="w-full bg-white/[0.02] border border-white/5 rounded-2xl px-6 py-5 text-white font-mono text-2xl tracking-tight focus:outline-none focus:bg-white/[0.04] focus:border-white/20 transition-all duration-300"
               />
             </div>
           </div>
 
-          <div>
-            <label className="text-xs font-display font-bold text-text-secondary uppercase tracking-wider px-1 mb-2 block">Quantidade</label>
-            <input
-              type="number"
-              min="1"
-              required
-              value={quantidade}
-              onChange={(e) => setQuantidade(e.target.value)}
-              placeholder="1"
-              className="w-full bg-black/20 border border-white/10 shadow-[inset_0_2px_4px_rgba(0,0,0,0.2)] rounded-xl px-4 py-4 text-text-primary font-mono text-lg focus:outline-none focus:border-brand-orange focus:bg-black/30 focus:shadow-[inset_0_2px_4px_rgba(0,0,0,0.2),0_0_0_3px_rgba(229,89,29,0.2)] hover:border-white/20 transition-all duration-300"
-            />
-          </div>
-
-          <div className="md:col-span-2">
-            <label className="text-xs font-display font-bold text-text-secondary uppercase tracking-wider px-1 mb-2 block">Data da Operação</label>
+          {/* Data */}
+          <div className="group">
+            <label className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em] px-1 mb-3 block">Data da Operação</label>
             <input
               type="date"
               required
               value={data}
+              max={new Date().toISOString().split("T")[0]}
               onChange={(e) => setData(e.target.value)}
-              className="w-full bg-black/20 border border-white/10 shadow-[inset_0_2px_4px_rgba(0,0,0,0.2)] rounded-xl px-4 py-4 text-text-primary font-mono text-lg focus:outline-none focus:border-brand-orange focus:bg-black/30 focus:shadow-[inset_0_2px_4px_rgba(0,0,0,0.2),0_0_0_3px_rgba(229,89,29,0.2)] hover:border-white/20 transition-all duration-300 [color-scheme:dark]"
+              className="w-full bg-white/[0.02] border border-white/5 rounded-2xl px-6 py-5 text-white font-mono text-lg tracking-tight focus:outline-none focus:border-white/20 focus:bg-white/[0.04] transition-all duration-300 [color-scheme:dark]"
             />
           </div>
         </div>
 
-        {/* Resumo do Valor Total */}
-        <div className="bg-white/[0.02] backdrop-blur-md p-4 rounded-xl border border-white/5 flex justify-between items-center mt-2 shadow-inner">
-          <span className="text-text-secondary font-display text-sm font-medium">Valor Total da Operação</span>
-          <span className="font-mono font-bold text-xl text-brand-orange drop-shadow-[0_0_10px_rgba(229,89,29,0.3)]">
-            R$ {(parseCurrency(valor) * Number(quantidade || 1)).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-          </span>
-        </div>
+        {/* Feedback & Summary */}
+        <div className="space-y-6 pt-2 relative z-10">
+          
+          {/* Valor Total Summary */}
+          <div className="animate-in fade-in slide-in-from-bottom-2 duration-500 bg-white/[0.02] border border-white/5 rounded-2xl p-6 flex justify-between items-center shadow-inner">
+             <div className="flex flex-col">
+                <span className="text-[10px] font-bold text-white/20 uppercase tracking-widest mb-1">Total da Operação</span>
+                <div className="flex items-center gap-2">
+                   <div className={`w-2 h-2 rounded-full ${tipo === "compra" ? "bg-emerald-500" : "bg-red-500"}`} />
+                   <span className="text-white/60 font-medium text-xs uppercase tracking-wide">{tipo}</span>
+                </div>
+             </div>
+             <span className={`font-mono font-bold text-2xl tracking-tighter ${tipo === "compra" ? "text-emerald-400" : "text-red-400"}`}>
+               {formatBRL(totalOperacao)}
+             </span>
+          </div>
 
-        <button 
-          type="submit"
-          disabled={loading || !ativo || !valor}
-          className="w-full bg-[linear-gradient(135deg,var(--orange),var(--amber))] shadow-[0_4px_16px_rgba(229,89,29,0.3),inset_0_1px_0_rgba(255,255,255,0.3)] hover:shadow-[0_6px_24px_rgba(229,89,29,0.4),inset_0_1px_0_rgba(255,255,255,0.4)] hover:-translate-y-1 active:scale-[0.98] disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none text-white font-bold py-4 rounded-xl transition-all duration-300 text-lg tracking-wide"
-        >
-          {loading ? "Salvando..." : "Registrar Lançamento"}
-        </button>
+          {globalError && (
+            <div role="alert" className="flex items-start gap-4 bg-red-500/10 border border-red-500/20 rounded-2xl px-5 py-4 animate-in fade-in slide-in-from-top-2 duration-300 shadow-lg">
+              <div className="w-8 h-8 rounded-xl bg-red-500/10 flex items-center justify-center border border-red-500/20 shrink-0">
+                <AlertCircle size={18} className="text-red-400" />
+              </div>
+              <p className="text-sm font-medium text-red-300/80 leading-relaxed pt-1.5">{globalError}</p>
+            </div>
+          )}
+
+          {/* Submit Button */}
+          <button 
+            type="submit"
+            disabled={loading || !ativo || !valor || Number(quantidade) <= 0}
+            className="w-full relative group/btn overflow-hidden rounded-2xl py-5 transition-all duration-500 disabled:opacity-20 disabled:cursor-not-allowed active:scale-[0.98] shadow-xl"
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-orange-600 to-amber-500 transition-opacity duration-500" />
+            <div className="absolute inset-0 bg-orange-400 opacity-0 group-hover/btn:opacity-20 transition-opacity blur-xl" />
+            
+            <span className="relative z-10 flex items-center justify-center gap-3 text-white font-bold text-lg tracking-wide">
+              {loading ? (
+                <div className="w-6 h-6 border-3 border-white/20 border-t-white rounded-full animate-spin" />
+              ) : (
+                <>
+                  {isEditMode ? "Atualizar Registro" : "Confirmar Lançamento"}
+                  <CheckCircle2 size={20} className="group-hover/btn:scale-110 transition-transform" />
+                </>
+              )}
+            </span>
+          </button>
+        </div>
       </form>
     </div>
+  );
+}
+
+export default function NovoInvestimentoPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center h-[60vh]">
+        <div className="animate-spin w-8 h-8 border-4 border-orange-500/20 border-t-orange-500 rounded-full" />
+      </div>
+    }>
+      <NovoInvestimentoForm />
+    </Suspense>
   );
 }

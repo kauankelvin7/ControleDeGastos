@@ -37,6 +37,22 @@ export function useGastos(mesKey?: string) {
   });
 }
 
+export function useReceitas(mesKey?: string) {
+  return useQuery({
+    queryKey: ["receitas", auth.currentUser?.uid, mesKey],
+    queryFn: async () => {
+      if (!auth.currentUser) return [];
+      let q = query(collection(db, `users/${auth.currentUser.uid}/receitas`), orderBy("data", "desc"));
+      if (mesKey) {
+        q = query(q, where("mesKey", "==", mesKey));
+      }
+      const snapshot = await getDocs(q);
+      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    },
+    enabled: !!auth.currentUser,
+  });
+}
+
 export function useReserva() {
   return useQuery({
     queryKey: ["reserva", auth.currentUser?.uid],

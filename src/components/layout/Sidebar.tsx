@@ -2,14 +2,25 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Wallet, ArrowRightLeft, Target, ShieldAlert, Sparkles, LogOut } from "lucide-react";
+import { 
+  LayoutDashboard, 
+  Wallet, 
+  ArrowRightLeft, 
+  Target, 
+  ShieldAlert, 
+  Sparkles, 
+  LogOut,
+  Plus,
+  TrendingUp,
+  CreditCard
+} from "lucide-react";
 import { auth } from "@/lib/firebase";
 import { signOut } from "firebase/auth";
 
 const MENU_ITEMS = [
   { href: "/dashboard", label: "Início", icon: LayoutDashboard },
   { href: "/investimentos", label: "Investimentos", icon: Wallet },
-  { href: "/gastos", label: "Gastos", icon: ArrowRightLeft },
+  { href: "/gastos", label: "Gastos", icon: CreditCard },
   { href: "/metas", label: "Metas", icon: Target },
   { href: "/reserva", label: "Reserva", icon: ShieldAlert },
   { href: "/relatorio", label: "Relatório AI", icon: Sparkles },
@@ -24,31 +35,37 @@ export default function Sidebar({ userProfile }: { userProfile?: any }) {
   };
 
   return (
-    <aside className="hidden md:flex w-64 h-screen bg-black/40 backdrop-blur-2xl border-r border-white/5 flex-col fixed left-0 top-0 z-50 shadow-[4px_0_24px_rgba(0,0,0,0.3)]">
+    <aside className="hidden md:flex w-64 h-screen bg-[#0a0a0a]/40 backdrop-blur-3xl border-r border-white/[0.03] flex-col fixed left-0 top-0 z-50">
       
+      {/* Subtle Bottom Glow for Brand */}
+      <div className="absolute top-0 left-0 right-0 h-48 bg-gradient-to-b from-orange-500/[0.03] to-transparent pointer-events-none" />
+
       {/* Logo Branding */}
-      <div className="p-8 flex items-center gap-3">
-        <div className="w-9 h-9 rounded-xl bg-[linear-gradient(135deg,var(--orange),var(--amber))] flex items-center justify-center font-bold text-white shadow-[0_8px_20px_rgba(229,89,29,0.3),inset_0_2px_4px_rgba(255,255,255,0.3)] transition-transform hover:rotate-3">
-          K₿
+      <div className="p-10 flex items-center gap-4 relative z-10">
+        <div className="w-10 h-10 rounded-[1.25rem] bg-gradient-to-br from-orange-500 to-amber-400 flex items-center justify-center font-bold text-black shadow-xl transition-transform hover:scale-105 active:scale-95 duration-500">
+          <TrendingUp size={22} />
         </div>
-        <span className="font-display font-bold text-xl tracking-tight text-white drop-shadow-sm">KiNance</span>
+        <span className="text-2xl font-bold tracking-tighter text-white/95">KiNance</span>
       </div>
 
       {/* Primary Action Button */}
-      <div className="px-5 mb-8">
+      <div className="px-6 mb-10 relative z-10">
         <Link 
           href="/lancamento" 
-          className="w-full flex items-center justify-center gap-2 bg-[linear-gradient(135deg,var(--orange),var(--amber))] shadow-[0_4px_16px_rgba(229,89,29,0.3),inset_0_1px_0_rgba(255,255,255,0.3)] text-white py-3.5 rounded-2xl font-bold text-sm hover:shadow-[0_6px_24px_rgba(229,89,29,0.4),inset_0_1px_0_rgba(255,255,255,0.4)] hover:-translate-y-0.5 transition-all duration-300"
+          className="group relative w-full flex items-center justify-center gap-3 bg-white text-black py-4 rounded-2xl font-bold text-xs uppercase tracking-widest transition-all duration-500 hover:shadow-[0_12px_24px_rgba(255,255,255,0.1)] hover:-translate-y-1 active:scale-95 overflow-hidden"
         >
-          + Novo Lançamento
+          <div className="absolute inset-0 bg-gradient-to-r from-orange-500 to-amber-400 opacity-0 group-hover:opacity-10 transition-opacity" />
+          <Plus size={18} className="group-hover:rotate-90 transition-transform duration-500" /> 
+          Novo Lançamento
         </Link>
       </div>
 
       {/* Navigation Menu */}
-      <nav className="flex-1 px-4 space-y-1 overflow-y-auto custom-scrollbar">
-        <div className="text-[10px] font-display font-bold text-text-disabled uppercase tracking-[0.2em] mb-4 px-3 opacity-60">
+      <nav className="flex-1 px-4 space-y-2 overflow-y-auto custom-scrollbar relative z-10">
+        <div className="text-[10px] font-bold text-white/10 uppercase tracking-[0.3em] mb-4 px-4">
           Navegação
         </div>
+        
         {MENU_ITEMS.map((item) => {
           const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
           const Icon = item.icon;
@@ -56,22 +73,26 @@ export default function Sidebar({ userProfile }: { userProfile?: any }) {
             <Link
               key={item.href}
               href={item.href}
-              className={`group flex items-center gap-3 px-4 py-3 rounded-xl font-display text-sm font-medium transition-all duration-300 relative ${
+              className={`group flex items-center gap-4 px-5 py-3.5 rounded-2xl text-[13px] font-bold transition-all duration-500 relative ${
                 isActive
-                  ? "bg-brand-orange/10 text-brand-orange shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
-                  : "text-text-muted hover:text-text-secondary hover:bg-white/5"
+                  ? "bg-white/[0.03] text-white shadow-xl border border-white/[0.05]"
+                  : "text-white/30 hover:text-white/60 hover:bg-white/[0.01]"
               }`}
             >
-              {/* Vertical Active Indicator */}
+              {/* Active Indicator Glow */}
               {isActive && (
-                <div className="absolute left-0 top-1/4 bottom-1/4 w-[2px] bg-brand-orange shadow-[0_0_10px_var(--orange)] rounded-full" />
+                <div className="absolute -left-1 top-1/4 bottom-1/4 w-[3px] bg-orange-500 rounded-full shadow-[0_0_15px_rgba(249,115,22,1)]" />
               )}
               
               <Icon 
-                size={18} 
-                className={`transition-colors duration-300 ${isActive ? "text-brand-orange drop-shadow-[0_0_8px_rgba(229,89,29,0.4)]" : "group-hover:text-text-primary"}`} 
+                size={20} 
+                className={`transition-all duration-500 ${isActive ? "text-orange-500 scale-110" : "group-hover:text-white/60"}`} 
               />
-              <span className={isActive ? "font-bold" : ""}>{item.label}</span>
+              <span className="tracking-tight">{item.label}</span>
+
+              {isActive && (
+                <div className="ml-auto w-1.5 h-1.5 rounded-full bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.6)]" />
+              )}
             </Link>
           );
         })}
@@ -79,23 +100,24 @@ export default function Sidebar({ userProfile }: { userProfile?: any }) {
 
       {/* User Profile Section */}
       {userProfile && (
-        <div className="p-6 border-t border-white/5 bg-black/20 mt-auto">
-          <div className="flex items-center gap-3 mb-5 group cursor-pointer">
-            <div className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center font-display font-bold text-brand-amber shadow-inner group-hover:border-brand-orange/40 transition-colors">
+        <div className="p-8 border-t border-white/[0.03] mt-auto relative z-10">
+          <div className="flex items-center gap-4 mb-8 group">
+            <div className="w-11 h-11 rounded-2xl bg-white/[0.02] border border-white/5 flex items-center justify-center text-orange-400 font-bold text-lg shadow-inner group-hover:bg-white/[0.04] transition-all duration-500">
               {(userProfile.nome || "K")[0].toUpperCase()}
             </div>
             <div className="flex-1 overflow-hidden">
-              <div className="text-sm font-bold text-text-primary truncate group-hover:text-white transition-colors">
+              <div className="text-sm font-bold text-white/80 truncate group-hover:text-white transition-colors duration-500">
                 {userProfile.nome || "Investidor"}
               </div>
             </div>
           </div>
+          
           <button 
             onClick={handleLogout} 
-            className="w-full flex items-center justify-center gap-2 text-xs font-bold text-text-disabled hover:text-danger hover:bg-danger/10 transition-all py-2.5 rounded-lg uppercase tracking-widest border border-transparent hover:border-danger/20"
+            className="w-full flex items-center justify-center gap-3 text-[11px] font-bold text-white/20 hover:text-red-400 hover:bg-red-500/5 transition-all py-3.5 rounded-xl uppercase tracking-[0.2em] border border-transparent hover:border-red-500/10 active:scale-95 duration-500"
           >
-            <LogOut size={14} />
-            Sair da conta
+            <LogOut size={16} />
+            Desconectar
           </button>
         </div>
       )}

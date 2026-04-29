@@ -66,6 +66,7 @@ export function useCotacoes(tickers: string[] | null | undefined) {
     // Só executa quando há tickers válidos
     enabled: sorted.length > 0,
     staleTime: 5 * 60 * 1000,   // 5 min — em sincronia com o cache da rota /api/brapi
+    refetchInterval: 60_000,    // Atualiza cotações a cada 1 minuto
     gcTime: 10 * 60 * 1000,     // mantém no cache por 10 min após desmonte
     retry: 1,
     // Retorna {} em vez de lançar erro — o componente usa avgPrice como fallback

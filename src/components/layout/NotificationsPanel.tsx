@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useNotifications } from "@/hooks/useFirebaseData";
-import { Bell, Check, Info, AlertTriangle, Lightbulb } from "lucide-react";
+import { Bell, Check, Info, AlertTriangle, Lightbulb, Bot, X } from "lucide-react";
 import { doc, updateDoc } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 
@@ -33,105 +33,128 @@ export default function NotificationsPanel() {
 
   const getIcon = (type: string) => {
     switch (type) {
-      case "alerta": return <AlertTriangle size={18} className="text-danger drop-shadow-[0_0_8px_rgba(248,113,113,0.4)]" />;
-      case "oportunidade": return <Lightbulb size={18} className="text-info drop-shadow-[0_0_8px_rgba(96,165,250,0.4)]" />;
-      default: return <Info size={18} className="text-brand-orange drop-shadow-[0_0_8px_rgba(229,89,29,0.4)]" />;
+      case "alerta": return <AlertTriangle size={16} className="text-red-400" />;
+      case "oportunidade": return <Lightbulb size={16} className="text-amber-400" />;
+      default: return <Info size={16} className="text-sky-400" />;
     }
   };
 
   return (
     <div className="relative">
-      {/* Botão do Sino com Efeito de Vidro */}
+      {/* Bell Button */}
       <button 
         onClick={() => setOpen(!open)}
-        className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 relative border ${
+        aria-label="Notificações"
+        className={`w-11 h-11 rounded-2xl flex items-center justify-center transition-all duration-500 relative border ${
           open 
-          ? "bg-white/10 border-white/20 text-white shadow-glow" 
-          : "bg-white/5 border-white/5 text-text-muted hover:bg-white/10 hover:text-text-primary"
+          ? "bg-white text-black border-white shadow-xl" 
+          : "bg-white/[0.03] border-white/5 text-white/40 hover:bg-white/[0.06] hover:text-white"
         }`}
       >
-        <Bell size={20} className={open ? "animate-none" : "hover:rotate-12 transition-transform"} />
-        {unread.length > 0 && (
-          <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-brand-orange rounded-full shadow-[0_0_10px_var(--orange)] animate-pulse border border-bg-base"></span>
+        <Bell size={20} className={open ? "" : "group-hover:rotate-12 transition-transform"} />
+        {unread.length > 0 && !open && (
+          <span className="absolute top-2.5 right-2.5 w-2.5 h-2.5 bg-orange-500 rounded-full shadow-[0_0_10px_rgba(249,115,22,0.8)] border-2 border-[#0a0a0a] animate-pulse" />
         )}
       </button>
 
-      {/* Dropdown de Notificações (Glassmorphism) */}
+      {/* Dropdown Menu */}
       {open && (
         <>
-          {/* Overlay invisível para fechar ao clicar fora */}
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
           
-          <div className="absolute right-0 mt-3 w-85 sm:w-96 bg-[#0a0907] border border-white/10 rounded-[24px] shadow-[0_20px_50px_rgba(0,0,0,0.8)] z-50 overflow-hidden animate-in fade-in zoom-in-95 slide-in-from-top-4 duration-300">
+          <div className="absolute right-0 mt-4 w-[22rem] sm:w-[26rem] bg-[#0a0a0a]/90 backdrop-blur-3xl border border-white/[0.05] rounded-[2.5rem] shadow-2xl z-50 overflow-hidden animate-in fade-in zoom-in-95 slide-in-from-top-4 duration-500">
             
-            {/* Header do Painel */}
-            <div className="p-5 border-b border-white/5 flex justify-between items-center bg-white/[0.03]">
-              <h3 className="font-display font-bold text-text-primary flex items-center gap-2 tracking-tight">
-                <Bell size={16} className="text-brand-orange" /> Notificações
-              </h3>
-              {unread.length > 0 && (
+            {/* Header */}
+            <div className="p-8 border-b border-white/[0.03] flex justify-between items-center bg-white/[0.01]">
+              <div>
+                <h3 className="text-lg font-bold text-white tracking-tight flex items-center gap-3">
+                  Notificações
+                </h3>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-white/20 mt-1">
+                  {unread.length} novas mensagens
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                {unread.length > 0 && (
+                  <button 
+                    onClick={markAllAsRead} 
+                    className="p-2.5 rounded-xl bg-white/[0.03] border border-white/5 text-white/40 hover:text-white transition-all group"
+                    title="Marcar todas como lidas"
+                  >
+                    <Check size={16} />
+                  </button>
+                )}
                 <button 
-                  onClick={markAllAsRead} 
-                  className="text-[10px] font-bold uppercase tracking-widest text-text-disabled hover:text-brand-orange transition-colors flex items-center gap-1.5"
+                  onClick={() => setOpen(false)}
+                  className="p-2.5 rounded-xl bg-white/[0.03] border border-white/5 text-white/40 hover:text-white transition-all"
                 >
-                  <Check size={14} /> Marcar todas
+                  <X size={16} />
                 </button>
-              )}
+              </div>
             </div>
             
-            {/* Lista de Notificações */}
-            <div className="max-h-[400px] overflow-y-auto custom-scrollbar">
+            {/* List */}
+            <div className="max-h-[450px] overflow-y-auto custom-scrollbar pb-4">
               {notifications && notifications.length > 0 ? (
-                notifications.map((notif: any) => (
+                notifications.map((notif: any, index: number) => (
                   <div 
                     key={notif.id} 
-                    className={`group p-5 border-b border-white/5 last:border-0 transition-all duration-300 flex gap-4 items-start cursor-pointer ${
+                    style={{ animationDelay: `${index * 50}ms` }}
+                    className={`group p-6 border-b border-white/[0.03] last:border-0 transition-all duration-500 flex gap-5 items-start cursor-pointer animate-in fade-in slide-in-from-right-4 ${
                       notif.lida 
-                      ? 'opacity-75 hover:opacity-100 bg-black/10' 
-                      : 'bg-white/[0.02] hover:bg-white/[0.05]'
+                      ? 'opacity-40 grayscale-[0.5]' 
+                      : 'bg-white/[0.01] hover:bg-white/[0.03]'
                     }`}
                     onClick={() => !notif.lida && markAsRead(notif.id)}
                   >
-                    {/* Ícone com Background Esculpido */}
-                    <div className={`p-2.5 rounded-xl transition-all duration-300 shadow-inner border ${
+                    {/* Icon Container */}
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border transition-all duration-500 ${
                       notif.lida 
-                      ? 'bg-black/20 border-transparent' 
-                      : 'bg-white/5 border-white/5 group-hover:border-white/10 group-hover:bg-white/10'
+                      ? 'bg-white/[0.02] border-white/5 text-white/20' 
+                      : 'bg-white/[0.03] border-white/10 group-hover:scale-110 shadow-inner'
                     }`}>
                       {getIcon(notif.tipo)}
                     </div>
 
-                    <div className="flex-1">
-                      <div className="flex justify-between items-start gap-2">
-                        <div className={`font-bold font-display text-sm tracking-tight transition-colors ${
-                          notif.lida ? 'text-text-secondary' : 'text-text-primary group-hover:text-white'
+                    <div className="flex-1 min-w-0">
+                      <div className="flex justify-between items-start gap-4">
+                        <div className={`text-sm font-bold tracking-tight transition-colors duration-500 ${
+                          notif.lida ? 'text-white/40' : 'text-white/90 group-hover:text-white'
                         }`}>
                           {notif.titulo}
                         </div>
                         {!notif.lida && (
-                          <div className="w-1.5 h-1.5 rounded-full bg-brand-orange shadow-[0_0_8px_var(--orange)] mt-1.5 flex-shrink-0"></div>
+                          <div className="w-1.5 h-1.5 rounded-full bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.8)] mt-1.5 flex-shrink-0" />
                         )}
                       </div>
-                      <div className="text-xs text-text-muted leading-relaxed mt-1 group-hover:text-text-secondary transition-colors">
+                      <p className={`text-[13px] font-medium leading-relaxed mt-1.5 line-clamp-2 transition-colors duration-500 ${
+                        notif.lida ? 'text-white/20' : 'text-white/40 group-hover:text-white/60'
+                      }`}>
                         {notif.mensagem}
-                      </div>
-                      <div className="text-[9px] font-bold uppercase tracking-[0.15em] text-text-disabled mt-3 font-mono">
+                      </p>
+                      <div className="text-[10px] font-bold uppercase tracking-widest text-white/10 mt-4 font-mono">
                         {new Date(notif.data).toLocaleDateString('pt-BR')}
                       </div>
                     </div>
                   </div>
                 ))
               ) : (
-                <div className="py-16 text-center flex flex-col items-center gap-3 opacity-40">
-                  <Bell size={40} strokeWidth={1} className="text-text-disabled" />
-                  <p className="text-sm font-display font-medium text-text-muted">Nenhuma notificação por enquanto.</p>
+                <div className="py-24 text-center flex flex-col items-center gap-6 opacity-20">
+                  <div className="w-16 h-16 rounded-[1.5rem] bg-white/[0.02] border border-white/5 flex items-center justify-center shadow-inner">
+                    <Bell size={32} strokeWidth={1} />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold uppercase tracking-[0.2em]">Silêncio por aqui</p>
+                    <p className="text-[10px] font-bold uppercase tracking-widest mt-2">Nenhuma nova notificação</p>
+                  </div>
                 </div>
               )}
             </div>
 
-            {/* Footer sutil */}
-            <div className="p-3 bg-white/[0.01] text-center border-t border-white/5">
-               <span className="text-[9px] uppercase tracking-[0.2em] text-text-disabled font-bold">KiNance Intelligence</span>
+            {/* AI Footer */}
+            <div className="p-5 bg-white/[0.02] flex items-center justify-center gap-3 border-t border-white/[0.03]">
+               <Bot size={14} className="text-purple-400 opacity-40" />
+               <span className="text-[10px] uppercase tracking-[0.3em] text-white/20 font-bold">KiNance Intelligence</span>
             </div>
           </div>
         </>

@@ -7,37 +7,40 @@ import {
   DoughnutController,
   Tooltip,
   Legend,
-  ChartOptions,
-  TooltipItem,
+  type ChartOptions,
+  type TooltipItem,
 } from "chart.js";
 import { Doughnut } from "react-chartjs-2";
 import { formatBRL } from "@/lib/utils";
 import type { Gasto } from "@/types/dashboard";
+import { PieChart } from "lucide-react";
 
 ChartJS.register(ArcElement, DoughnutController, Tooltip, Legend);
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
+interface GastosChartProps {
+  gastos: Gasto[];
+  className?: string;
+}
+
 // ─── Constantes ───────────────────────────────────────────────────────────────
 
-const FALLBACK_COLOR = "#64748b";
+const FALLBACK_COLOR = "#78716c"; // Stone 500
 
+// Paleta de cores moderna (inspirada no Tailwind)
 const CATEGORIA_CORES: Record<string, string> = {
-  "Moradia":      "#e5591d",
-  "Alimentação":  "#ffa43c",
-  "Transporte":   "#60a5fa",
-  "Saúde":        "#4ade80",
-  "Educação":     "#a78bfa",
-  "Lazer":        "#f472b6",
+  "Moradia":      "#6366f1", // Indigo 500
+  "Alimentação":  "#10b981", // Emerald 500
+  "Transporte":   "#f59e0b", // Amber 500
+  "Saúde":        "#ef4444", // Red 500
+  "Educação":     "#8b5cf6", // Violet 500
+  "Lazer":        "#ec4899", // Pink 500
   "Outros":       FALLBACK_COLOR,
 };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-/**
- * Converte cor hex #rrggbb → rgba(r,g,b,alpha).
- * Robusto: funciona com #rgb e #rrggbb. Fallback para a própria cor se inválida.
- */
 function hexToRgba(hex: string, alpha: number): string {
   const sanitized = hex.replace("#", "");
   const full =
@@ -52,29 +55,35 @@ function hexToRgba(hex: string, alpha: number): string {
   return `rgba(${r},${g},${b},${alpha})`;
 }
 
-/**
- * Normaliza o nome da categoria para o lookup da paleta.
- * Evita que "outros" ou "OUTROS" fique sem cor.
- */
 function normalizeCategoria(raw: string | undefined): string {
   if (!raw) return "Outros";
-  // Capitaliza primeira letra para bater com as chaves da paleta
   return raw.charAt(0).toUpperCase() + raw.slice(1).toLowerCase() === raw
     ? raw
-    : raw.charAt(0).toUpperCase() + raw.slice(1);
+    : raw.charAt(0).toUpperCase() + raw.slice(1).toLowerCase();
 }
 
 function corDaCategoria(categoria: string): string {
   return CATEGORIA_CORES[categoria] ?? FALLBACK_COLOR;
 }
 
-// ─── Componente ───────────────────────────────────────────────────────────────
+// ─── Empty State ──────────────────────────────────────────────────────────────
 
-interface GastosChartProps {
-  gastos: Gasto[];
+function EmptyState() {
+  return (
+    <div className="min-h-[300px] flex flex-col items-center justify-center gap-4 bg-white/[0.01] border border-white/5 rounded-3xl p-8 h-full">
+      <div className="w-16 h-16 rounded-2xl bg-white/[0.03] border border-white/10 flex items-center justify-center shadow-inner">
+        <PieChart size={28} className="text-white/20" strokeWidth={1.5} aria-hidden />
+      </div>
+      <span className="text-sm text-white/40 font-medium tracking-wide text-center max-w-xs leading-relaxed">
+        Nenhum gasto registrado ainda.
+      </span>
+    </div>
+  );
 }
 
-export default function GastosChart({ gastos }: GastosChartProps) {
+// ─── Componente ───────────────────────────────────────────────────────────────
+
+export default function GastosChart({ gastos, className = "" }: GastosChartProps) {
   const chartData = useMemo(() => {
     if (!gastos || gastos.length === 0) return null;
 
@@ -95,9 +104,8 @@ export default function GastosChart({ gastos }: GastosChartProps) {
 
   if (!chartData) {
     return (
-      <div className="flex flex-col items-center justify-center h-full py-8 opacity-50">
-        <span className="text-3xl mb-2" aria-hidden="true">💸</span>
-        <span className="text-xs font-display text-text-muted">Nenhum gasto registrado.</span>
+      <div className={`h-full ${className}`}>
+        <EmptyState />
       </div>
     );
   }
@@ -109,11 +117,12 @@ export default function GastosChart({ gastos }: GastosChartProps) {
     datasets: [
       {
         data: chartData.data,
-        backgroundColor: chartData.colors.map((c) => hexToRgba(c, 0.8)),
+        backgroundColor: chartData.colors.map((c) => hexToRgba(c, 0.85)),
         borderColor: chartData.colors,
-        borderWidth: 1.5,
-        hoverBorderWidth: 2,
-        hoverOffset: 6,
+        borderWidth: 0, // Removido para usar o spacing nativo
+        hoverOffset: 8,
+        spacing: 4, // Cria o "gap" elegante entre as fatias (requer Chart.js 3+)
+        borderRadius: 4, // Arredonda levemente as pontas das fatias
       },
     ],
   };
@@ -121,20 +130,26 @@ export default function GastosChart({ gastos }: GastosChartProps) {
   const options: ChartOptions<"doughnut"> = {
     responsive: true,
     maintainAspectRatio: false,
-    cutout: "68%",
-    animation: { duration: 600, easing: "easeInOutQuart" },
+    cutout: "75%", // Aumentado para deixar o anel mais fino e elegante
+    animation: { duration: 1000, easing: "easeOutQuart" },
+    layout: {
+      padding: 10, // Evita que o hover corte nas bordas do canvas
+    },
     plugins: {
       legend: { display: false },
       tooltip: {
-        backgroundColor: "#18150e",
-        borderColor: "#3d3020",
+        backgroundColor: "rgba(18, 18, 18, 0.95)",
+        borderColor: "rgba(255, 255, 255, 0.1)",
         borderWidth: 1,
-        titleColor: "#ffa43c",
-        titleFont: { family: "'IBM Plex Mono', monospace", size: 11 },
-        bodyColor: "#e8d5b0",
-        bodyFont: { family: "'IBM Plex Mono', monospace", size: 11 },
-        padding: 10,
-        displayColors: false,
+        titleColor: "rgba(255, 255, 255, 0.5)",
+        titleFont: { family: "inherit", size: 11, weight: "bold" },
+        bodyColor: "#ffffff",
+        bodyFont: { family: "inherit", size: 13, weight: "bold" },
+        padding: 12,
+        cornerRadius: 12,
+        displayColors: true,
+        boxPadding: 6,
+        usePointStyle: true,
         callbacks: {
           label: (item: TooltipItem<"doughnut">) => {
             const value = item.raw as number;
@@ -143,7 +158,7 @@ export default function GastosChart({ gastos }: GastosChartProps) {
               style: "currency",
               currency: "BRL",
             });
-            return ` ${formatted}  (${pct}%)`;
+            return `${formatted} (${pct}%)`;
           },
         },
       },
@@ -151,50 +166,76 @@ export default function GastosChart({ gastos }: GastosChartProps) {
   };
 
   return (
-    <div className="flex flex-col gap-4 h-full">
-      {/* Donut */}
-      <div
-        className="relative w-full h-[180px] flex-shrink-0"
-        role="img"
-        aria-label={`Gráfico de gastos por categoria. Total: ${formatBRL(totalGastos)}`}
-      >
-        <Doughnut data={data} options={options} />
-
-        {/* Centro do donut */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none" aria-hidden="true">
-          <span className="text-[9px] font-display text-text-muted uppercase tracking-widest">Total</span>
-          <span className="font-mono font-bold text-base text-text-primary leading-tight">
-            {formatBRL(totalGastos)}
-          </span>
-        </div>
+    <div className={`rounded-3xl p-6 lg:p-8 flex flex-col gap-8 bg-[#0a0a0a] border border-white/5 shadow-2xl h-full ${className}`}>
+      
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-semibold tracking-tight text-white/90">
+          Distribuição de Gastos
+        </h2>
       </div>
 
-      {/* Legenda customizada */}
-      <div className="grid grid-cols-2 gap-x-4 gap-y-1.5" role="list" aria-label="Categorias de gastos">
-        {chartData.labels.map((label, i) => {
-          const pct = (chartData.data[i] / totalGastos) * 100;
-          // Exibe 1 casa decimal para categorias pequenas (< 1%), inteiro para as demais
-          const pctFormatted = pct < 1 ? pct.toFixed(1) : pct.toFixed(0);
+      <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-12 flex-1">
+        
+        {/* Donut Chart */}
+        <div
+          className="relative w-full max-w-[240px] aspect-square flex-shrink-0"
+          role="img"
+          aria-label={`Gráfico de gastos por categoria. Total: ${formatBRL(totalGastos)}`}
+        >
+          <Doughnut data={data} options={options} />
 
-          return (
-            <div
-              key={label}
-              className="flex items-center gap-1.5 min-w-0"
-              role="listitem"
-              aria-label={`${label}: ${formatBRL(chartData.data[i])} (${pctFormatted}%)`}
-            >
-              <span
-                className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-                style={{ background: chartData.colors[i] }}
-                aria-hidden="true"
-              />
-              <span className="text-[11px] font-display text-text-muted truncate">{label}</span>
-              <span className="text-[10px] font-mono text-text-secondary ml-auto flex-shrink-0">
-                {pctFormatted}%
-              </span>
-            </div>
-          );
-        })}
+          {/* Centro do donut */}
+          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none" aria-hidden="true">
+            <span className="text-[10px] font-semibold text-white/40 uppercase tracking-widest mb-1">Total</span>
+            <span className="font-bold text-2xl tracking-tight text-white leading-none">
+              {formatBRL(totalGastos)}
+            </span>
+          </div>
+        </div>
+
+        {/* Lista de Legendas Interativa */}
+        <div className="flex flex-col gap-2 w-full flex-1" role="list" aria-label="Categorias de gastos">
+          {chartData.labels.map((label, i) => {
+            const valor = chartData.data[i];
+            const pct = (valor / totalGastos) * 100;
+            const pctFormatted = pct < 1 ? pct.toFixed(1) : pct.toFixed(0);
+            const cor = chartData.colors[i];
+
+            return (
+              <div
+                key={label}
+                className="group flex items-center justify-between p-3 rounded-xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] hover:border-white/10 transition-all duration-300"
+                role="listitem"
+                aria-label={`${label}: ${formatBRL(valor)} (${pctFormatted}%)`}
+              >
+                <div className="flex items-center gap-3">
+                  <div 
+                    className="w-3 h-3 rounded-full shadow-sm"
+                    style={{ 
+                      backgroundColor: cor,
+                      boxShadow: `0 0 12px ${cor}80` 
+                    }}
+                    aria-hidden="true"
+                  />
+                  <span className="text-sm font-medium text-white/80 group-hover:text-white transition-colors">
+                    {label}
+                  </span>
+                </div>
+                
+                <div className="flex items-center gap-4">
+                  <span className="text-sm font-bold text-white tracking-tight">
+                    {formatBRL(valor)}
+                  </span>
+                  <span className="text-xs font-semibold text-white/40 bg-white/5 px-2 py-1 rounded-md w-12 text-center">
+                    {pctFormatted}%
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
       </div>
     </div>
   );

@@ -9,14 +9,14 @@ import Sidebar from "@/components/layout/Sidebar";
 import BottomNav from "@/components/layout/BottomNav";
 import NotificationsPanel from "@/components/layout/NotificationsPanel";
 import { useAlertChecker } from "@/hooks/useAlertChecker";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Loader2 } from "lucide-react";
 
 // ─── types ────────────────────────────────────────────────────────────────────
 
 interface UserProfile {
   nome: string;
   onboardingCompleto: boolean;
-  [key: string]: unknown; // campos extras do Firestore sem quebrar a tipagem
+  [key: string]: unknown;
 }
 
 // ─── constants ────────────────────────────────────────────────────────────────
@@ -28,13 +28,22 @@ const AVATAR_FALLBACK = "?";
 function LoadingScreen() {
   return (
     <div
-      className="h-screen w-full flex items-center justify-center bg-[#050403]"
+      className="h-screen w-full flex flex-col items-center justify-center bg-[#0a0a0a]"
       role="status"
-      aria-label="Verificando autenticação..."
+      aria-label="Autenticando..."
     >
-      <div className="relative">
-        <div className="animate-spin w-12 h-12 border-4 border-brand-orange border-t-transparent rounded-full shadow-[0_0_20px_rgba(229,89,29,0.3)]" />
-        <div className="absolute inset-0 w-12 h-12 border-4 border-white/5 rounded-full" aria-hidden />
+      <div className="relative group">
+        <div className="absolute inset-0 bg-orange-500/20 blur-3xl rounded-full scale-150 animate-pulse" />
+        <div className="relative w-16 h-16 rounded-2xl bg-white/[0.01] border border-white/5 flex items-center justify-center shadow-2xl overflow-hidden">
+           <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent" />
+           <Loader2 size={32} className="text-orange-500 animate-spin" strokeWidth={2} />
+        </div>
+      </div>
+      <div className="mt-8 flex flex-col items-center gap-2">
+         <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-white/20 animate-pulse">Sincronizando Sessão</span>
+         <div className="w-12 h-0.5 bg-white/[0.05] rounded-full overflow-hidden">
+            <div className="h-full bg-orange-500 w-1/2 animate-[shimmer_1.5s_infinite_ease-in-out]" />
+         </div>
       </div>
     </div>
   );
@@ -44,15 +53,19 @@ function LoadingScreen() {
 
 function ErrorScreen({ onRetry }: { onRetry: () => void }) {
   return (
-    <div className="h-screen w-full flex flex-col items-center justify-center gap-4 bg-[#050403] text-text-muted">
-      <AlertCircle size={40} className="text-danger opacity-60" />
-      <p className="font-display text-lg text-text-primary">Não foi possível verificar sua sessão.</p>
-      <p className="text-sm text-text-disabled">Verifique sua conexão e tente novamente.</p>
+    <div className="h-screen w-full flex flex-col items-center justify-center gap-8 bg-[#0a0a0a] px-6 text-center">
+      <div className="w-20 h-20 rounded-3xl bg-red-500/5 border border-red-500/10 flex items-center justify-center shadow-inner">
+        <AlertCircle size={40} className="text-red-400/40" strokeWidth={1.5} />
+      </div>
+      <div>
+         <h2 className="text-xl font-bold text-white tracking-tight">Falha na Autenticação</h2>
+         <p className="text-sm font-medium text-white/30 mt-2 max-w-xs leading-relaxed">Não conseguimos validar sua identidade. Verifique sua conexão.</p>
+      </div>
       <button
         onClick={onRetry}
-        className="mt-2 px-5 py-2.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-text-primary font-bold transition-all duration-200"
+        className="px-8 py-4 rounded-2xl bg-white/5 border border-white/10 text-white font-bold text-xs uppercase tracking-widest hover:bg-white/10 transition-all shadow-xl active:scale-95"
       >
-        Tentar novamente
+        Tentar Novamente
       </button>
     </div>
   );
@@ -70,14 +83,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   useAlertChecker();
 
   useEffect(() => {
-    // onAuthStateChanged é um listener de longa duração — deve ser registrado
-    // UMA única vez no mount. Colocar pathname ou router nos deps recriaria o
-    // listener a cada navegação, gerando leituras desnecessárias no Firestore
-    // e possíveis race conditions entre listeners sobrepostos.
     const unsub = onAuthStateChanged(auth, async (user) => {
       if (!user) {
-        // Garante que o spinner seja removido antes do redirect,
-        // evitando que o finally nunca seja alcançado neste branch.
         setLoading(false);
         router.push("/");
         return;
@@ -102,8 +109,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     });
 
     return () => unsub();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // deps vazias intencionais — ver comentário acima
+  }, [router]);
 
   if (loading) return <LoadingScreen />;
 
@@ -113,8 +119,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         onRetry={() => {
           setAuthError(false);
           setLoading(true);
-          // Reautenticar via reload é a forma mais segura de re-disparar
-          // o listener do Firebase sem reimplementar a lógica manualmente.
           window.location.reload();
         }}
       />
@@ -125,48 +129,53 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const firstName = profile?.nome?.split(" ")[0] ?? "Investidor";
 
   return (
-    <div className="min-h-screen bg-bg-base flex md:pl-64 relative overflow-hidden">
+    <div className="min-h-screen bg-[#0a0a0a] text-white flex md:pl-64 relative overflow-hidden font-sans selection:bg-orange-500/30 selection:text-orange-200">
 
-      {/* Atmospheric background lights */}
-      <div className="fixed pointer-events-none inset-0 z-0" aria-hidden>
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-brand-orange/5 blur-[120px] rounded-full" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-amber-500/5 blur-[120px] rounded-full" />
+      {/* Atmospheric background glows */}
+      <div className="fixed pointer-events-none inset-0 z-0 overflow-hidden" aria-hidden>
+        <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] bg-orange-500/[0.03] blur-[150px] rounded-full animate-pulse" />
+        <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] bg-indigo-500/[0.03] blur-[150px] rounded-full animate-pulse" style={{ animationDelay: '2s' }} />
       </div>
 
       <Sidebar userProfile={profile} />
 
-      <main className="flex-1 w-full pb-20 md:pb-0 flex flex-col relative z-10">
+      <main className="flex-1 w-full pb-24 md:pb-0 flex flex-col relative z-10">
 
-        {/* Top bar */}
-        <div className="w-full h-16 border-b border-white/5 flex items-center justify-between px-4 md:px-8 shrink-0 sticky top-0 bg-black/40 backdrop-blur-2xl z-40 shadow-sm">
+        {/* Top bar - Glassmorphism refined */}
+        <div className="w-full h-18 border-b border-white/[0.03] flex items-center justify-between px-6 md:px-10 shrink-0 sticky top-0 bg-[#0a0a0a]/40 backdrop-blur-3xl z-40">
+          
+          {/* Subtle line decoration */}
+          <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-white/[0.05] to-transparent" />
 
-          {/* Mobile: brand/profile (hidden on desktop) */}
-          <div className="flex items-center gap-3 md:invisible" aria-hidden>
-            <div
-              className="w-8 h-8 rounded-lg bg-[linear-gradient(135deg,var(--orange),var(--amber))] flex items-center justify-center font-bold text-white shadow-[0_4px_10px_rgba(229,89,29,0.3)] text-xs select-none"
-            >
-              {avatarInitial}
+          {/* Mobile Profile Display */}
+          <div className="flex items-center gap-4 md:hidden" aria-hidden>
+            <div className="relative group">
+               <div className="absolute inset-0 bg-orange-500/20 blur-md rounded-lg scale-110 opacity-0 group-hover:opacity-100 transition-opacity" />
+               <div
+                className="relative w-9 h-9 rounded-xl bg-gradient-to-br from-orange-500 to-amber-400 flex items-center justify-center font-bold text-black text-xs shadow-lg"
+              >
+                {avatarInitial}
+              </div>
             </div>
             <div className="flex flex-col">
-              <span className="text-[9px] text-text-muted uppercase tracking-widest font-bold">
-                Bem-vindo
+              <span className="text-[9px] text-white/20 uppercase tracking-[0.2em] font-bold">
+                Dashboard
               </span>
-              <span className="font-display font-bold text-sm text-text-primary leading-tight flex items-center gap-1">
-                {firstName}{" "}
-                <span className="animate-wave inline-block origin-bottom-right" aria-hidden>
-                  👋
-                </span>
+              <span className="font-bold text-[13px] text-white/90 leading-tight flex items-center gap-1.5">
+                Olá, {firstName}
+                <span className="animate-wave inline-block origin-bottom-right" aria-hidden>👋</span>
               </span>
             </div>
           </div>
 
-          {/* Right: actions */}
-          <div className="flex items-center gap-4">
+          {/* Right Actions */}
+          <div className="flex items-center gap-6 ml-auto">
             <NotificationsPanel />
           </div>
         </div>
 
-        <div className="p-4 md:p-8 flex-1 max-w-[1600px] mx-auto w-full">
+        {/* Content Area */}
+        <div className="p-6 md:p-12 lg:p-16 flex-1 max-w-[1400px] mx-auto w-full animate-in fade-in slide-in-from-bottom-2 duration-1000 ease-out">
           {children}
         </div>
       </main>

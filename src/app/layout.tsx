@@ -1,22 +1,18 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import Providers from "./providers";
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  themeColor: "#0a0a0a",
+};
 
 export const metadata: Metadata = {
   title: "KiNance — Seu patrimônio, em tempo real.",
   description: "Gerencie seus investimentos, gastos e reserva de emergência com inteligência artificial.",
-  icons: {
-    icon: "/favicon-v3.svg",
-    apple: "/favicon-v3.svg",
-  },
-  // Configuração extra para mobile (estética de App Nativo)
-  themeColor: "#050403",
-  viewport: {
-    width: "device-width",
-    initialScale: 1,
-    maximumScale: 1,
-    userScalable: false,
-  },
 };
 
 export default function RootLayout({
@@ -26,7 +22,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR" suppressHydrationWarning>
-      <body className="antialiased bg-bg-base text-text-primary selection:bg-brand-orange/30 selection:text-white min-h-screen overflow-x-hidden">
+      <body className="antialiased bg-[#0a0a0a] text-white selection:bg-orange-500/30 selection:text-white min-h-screen overflow-x-hidden font-sans">
         <Providers>
           {children}
         </Providers>

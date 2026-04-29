@@ -6,7 +6,7 @@ import { onAuthStateChanged, User } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 import { maskCurrency, parseCurrency } from "@/lib/utils";
-import { Target, ShieldAlert, PiggyBank, ArrowRight, CheckCircle2, AlertTriangle } from "lucide-react";
+import { Target, ShieldAlert, PiggyBank, ArrowRight, CheckCircle2, AlertTriangle, ChevronLeft, Sparkles } from "lucide-react";
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -26,12 +26,7 @@ interface ObjetivoOption {
   description: string;
   icon: React.ElementType;
   activeColor: string;
-  activeBorder: string;
-  activeBg: string;
-  activeShadow: string;
-  activeIconBg: string;
-  activeIconColor: string;
-  activeIconShadow: string;
+  glowColor: string;
 }
 
 const OBJETIVO_OPTIONS: ObjetivoOption[] = [
@@ -40,39 +35,24 @@ const OBJETIVO_OPTIONS: ObjetivoOption[] = [
     label: "Reserva de Emergência",
     description: "Paz de espírito para imprevistos e segurança total.",
     icon: ShieldAlert,
-    activeColor: "text-brand-orange",
-    activeBorder: "border-brand-orange",
-    activeBg: "bg-brand-orange/10",
-    activeShadow: "shadow-[0_0_20px_rgba(229,89,29,0.15)]",
-    activeIconBg: "bg-brand-orange",
-    activeIconColor: "text-white",
-    activeIconShadow: "shadow-[0_0_15px_rgba(229,89,29,0.4)]",
+    activeColor: "text-orange-500",
+    glowColor: "shadow-[0_0_20px_rgba(249,115,22,0.2)]",
   },
   {
     value: "renda_passiva",
     label: "Renda Mensal Gerada",
     description: "Viver de dividendos e ver o dinheiro trabalhar por você.",
     icon: PiggyBank,
-    activeColor: "text-success",
-    activeBorder: "border-success",
-    activeBg: "bg-success/10",
-    activeShadow: "shadow-[0_0_20px_rgba(74,222,128,0.15)]",
-    activeIconBg: "bg-success",
-    activeIconColor: "text-black",
-    activeIconShadow: "shadow-[0_0_15px_rgba(74,222,128,0.3)]",
+    activeColor: "text-emerald-400",
+    glowColor: "shadow-[0_0_20px_rgba(16,185,129,0.2)]",
   },
   {
     value: "objetivo_especifico",
     label: "Objetivo Específico",
     description: "Conquistar um bem material ou aquela viagem inesquecível.",
     icon: Target,
-    activeColor: "text-info",
-    activeBorder: "border-info",
-    activeBg: "bg-info/10",
-    activeShadow: "shadow-[0_0_20px_rgba(96,165,250,0.15)]",
-    activeIconBg: "bg-info",
-    activeIconColor: "text-black",
-    activeIconShadow: "shadow-[0_0_15px_rgba(96,165,250,0.3)]",
+    activeColor: "text-sky-400",
+    glowColor: "shadow-[0_0_20px_rgba(56,189,248,0.2)]",
   },
 ];
 
@@ -107,9 +87,7 @@ export default function OnboardingPage() {
       setLoading(false);
     });
     return () => unsub();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    // router é estável no App Router — não precisa estar nos deps
-  }, []);
+  }, [router]);
 
   const handleComplete = useCallback(async () => {
     if (!user || !canComplete) return;
@@ -135,113 +113,104 @@ export default function OnboardingPage() {
     }
   }, [user, canComplete, nome, objetivo, parsedAporte, router]);
 
-  // ── Loading screen ─────────────────────────────────────────────────────────
-
   if (loading) {
     return (
-      <div
-        className="min-h-screen flex items-center justify-center bg-[#050403]"
-        role="status"
-        aria-label="Carregando"
-      >
-        <div
-          className="animate-spin w-10 h-10 border-4 border-brand-orange border-t-transparent rounded-full shadow-[0_0_15px_rgba(229,89,29,0.3)]"
-          aria-hidden="true"
-        />
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#0a0a0a] gap-4">
+        <div className="w-12 h-12 rounded-2xl bg-white/[0.01] border border-white/5 flex items-center justify-center animate-pulse">
+           <div className="w-8 h-8 border-4 border-orange-500/20 border-t-orange-500 rounded-full animate-spin shadow-[0_0_20px_rgba(249,115,22,0.1)]" />
+        </div>
+        <span className="text-[10px] font-bold uppercase tracking-widest text-white/20">Configurando Ambiente</span>
       </div>
     );
   }
 
-  // ── Render ─────────────────────────────────────────────────────────────────
-
   return (
-    <div className="min-h-screen bg-bg-base flex flex-col relative overflow-hidden">
-      {/* Glows atmosféricos */}
-      <div className="fixed pointer-events-none inset-0 z-0" aria-hidden="true">
-        <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-brand-orange/5 blur-[120px] rounded-full" />
-        <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-amber-500/5 blur-[120px] rounded-full" />
+    <div className="min-h-screen bg-[#0a0a0a] flex flex-col relative overflow-hidden font-sans selection:bg-orange-500/30 selection:text-white">
+      
+      {/* Background Glows */}
+      <div className="fixed pointer-events-none inset-0 z-0 overflow-hidden" aria-hidden>
+        <div className="absolute top-[-20%] right-[-10%] w-[60%] h-[60%] bg-orange-500/[0.04] blur-[150px] rounded-full animate-pulse" />
+        <div className="absolute bottom-[-20%] left-[-10%] w-[60%] h-[60%] bg-indigo-500/[0.04] blur-[150px] rounded-full animate-pulse" style={{ animationDelay: '2s' }} />
       </div>
 
-      <div className="flex-1 flex flex-col items-center justify-center p-6 max-w-lg mx-auto w-full relative z-10">
+      <div className="flex-1 flex flex-col items-center justify-center p-6 max-w-2xl mx-auto w-full relative z-10">
 
-        {/* Progress Bar */}
-        <div className="w-full flex gap-3 mb-12 px-2" role="progressbar" aria-valuenow={step} aria-valuemin={1} aria-valuemax={3} aria-label={`Passo ${step} de 3`}>
+        {/* Header Branding */}
+        <div className="flex flex-col items-center mb-12 animate-in fade-in zoom-in-95 duration-1000">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-400 flex items-center justify-center font-bold text-black shadow-2xl mb-6">
+            <Sparkles size={28} />
+          </div>
+          <h2 className="text-[10px] font-bold text-white/20 uppercase tracking-[0.4em]">Setup Sequence</h2>
+        </div>
+
+        {/* Progress System */}
+        <div className="w-full max-w-md flex gap-4 mb-12 px-2" role="progressbar">
           {[1, 2, 3].map((s) => (
             <div
               key={s}
-              className={`h-1.5 flex-1 rounded-full transition-all duration-500 ${
+              className={`h-1 flex-1 rounded-full transition-all duration-700 ${
                 step >= s
-                  ? "bg-[linear-gradient(90deg,var(--orange),var(--amber))] shadow-[0_0_10px_rgba(229,89,29,0.4)]"
-                  : "bg-white/5 border border-white/5"
+                  ? "bg-white shadow-[0_0_15px_rgba(255,255,255,0.3)]"
+                  : "bg-white/5"
               }`}
             />
           ))}
         </div>
 
-        {/* Card principal */}
-        <div className="w-full bg-[linear-gradient(145deg,rgba(255,255,255,0.04)_0%,rgba(255,255,255,0.01)_100%)] backdrop-blur-2xl border border-white/10 rounded-3xl p-8 md:p-10 shadow-[0_32px_64px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.1)]">
+        {/* Main Interface */}
+        <div className="w-full bg-[#0a0a0a]/40 backdrop-blur-3xl border border-white/[0.05] rounded-[3rem] p-10 lg:p-14 shadow-2xl relative overflow-hidden transition-all duration-700">
+          <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-white/[0.05] to-transparent" />
 
-          {/* ── Step 1: Nome ───────────────────────────────────────────────── */}
+          {/* ── Step 1: Identity ──────────────────────────────────────────────── */}
           {step === 1 && (
-            <div className="w-full animate-in fade-in slide-in-from-bottom-4 duration-700">
-              <h1 className="font-display font-bold text-4xl text-text-primary mb-3 tracking-tight">
-                Bem-vindo ao{" "}
-                <span className="bg-gradient-to-r from-brand-orange to-brand-amber bg-clip-text text-transparent">
-                  KiNance
-                </span>
-                ! 👋
+            <div className="w-full animate-in fade-in slide-in-from-bottom-8 duration-700 ease-out">
+              <h1 className="text-4xl font-bold text-white tracking-tighter mb-4">
+                Identidade <span className="text-orange-500">Premium</span>
               </h1>
-              <p className="text-text-secondary text-base mb-8 leading-relaxed">
-                Para começarmos a transformar sua vida financeira, como gostaria de ser chamado?
+              <p className="text-sm font-medium text-white/40 mb-12 leading-relaxed max-w-sm">
+                Iniciando seu protocolo de inteligência financeira. Como devemos identificar você no ecossistema?
               </p>
 
-              <div className="relative mb-10">
-                <label htmlFor="nome-input" className="sr-only">
-                  Seu nome ou apelido
-                </label>
-                <input
-                  id="nome-input"
-                  type="text"
-                  value={nome}
-                  onChange={(e) => setNome(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && canAdvanceStep1) setStep(2);
-                  }}
-                  placeholder="Seu nome ou apelido"
-                  maxLength={60}
-                  autoFocus
-                  className="w-full bg-black/20 border border-white/10 shadow-[inset_0_2px_4px_rgba(0,0,0,0.2)] rounded-2xl px-6 py-5 text-text-primary font-display text-xl focus:outline-none focus:border-brand-orange focus:bg-black/30 transition-all duration-300 placeholder:text-text-disabled"
-                />
-              </div>
+              <div className="space-y-10">
+                <div className="space-y-4">
+                  <label htmlFor="nome-input" className="text-[10px] font-bold text-white/20 uppercase tracking-[0.2em] px-1 block">Nome do Titular</label>
+                  <input
+                    id="nome-input"
+                    type="text"
+                    value={nome}
+                    onChange={(e) => setNome(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && canAdvanceStep1) setStep(2);
+                    }}
+                    placeholder="Seu nome ou apelido"
+                    maxLength={60}
+                    autoFocus
+                    className="w-full bg-white/[0.02] border border-white/[0.05] rounded-2xl px-6 py-5 text-white font-bold text-2xl tracking-tight focus:outline-none focus:border-white/20 focus:bg-white/[0.04] transition-all duration-500 placeholder:text-white/5"
+                  />
+                </div>
 
-              <button
-                onClick={() => setStep(2)}
-                disabled={!canAdvanceStep1}
-                className="w-full flex items-center justify-center gap-2 bg-[linear-gradient(135deg,var(--orange),var(--amber))] shadow-[0_4px_16px_rgba(229,89,29,0.3),inset_0_1px_0_rgba(255,255,255,0.3)] hover:shadow-[0_6px_24px_rgba(229,89,29,0.4),inset_0_1px_0_rgba(255,255,255,0.4)] hover:-translate-y-1 active:scale-[0.98] disabled:opacity-50 disabled:hover:translate-y-0 text-white font-display font-bold py-5 rounded-2xl transition-all text-lg"
-              >
-                Continuar <ArrowRight size={22} className="ml-1" aria-hidden="true" />
-              </button>
+                <button
+                  onClick={() => setStep(2)}
+                  disabled={!canAdvanceStep1}
+                  className="group w-full flex items-center justify-center gap-3 bg-white text-black py-5 rounded-[1.5rem] font-bold text-sm uppercase tracking-[0.2em] transition-all duration-500 hover:shadow-[0_12px_32px_rgba(255,255,255,0.1)] hover:-translate-y-1 active:scale-95 disabled:opacity-20"
+                >
+                  Continuar <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
+                </button>
+              </div>
             </div>
           )}
 
-          {/* ── Step 2: Objetivo ───────────────────────────────────────────── */}
+          {/* ── Step 2: Objectives ───────────────────────────────────────────── */}
           {step === 2 && (
-            <div className="w-full animate-in fade-in slide-in-from-right-8 duration-700">
-              <h1
-                id="objetivo-group-label"
-                className="font-display font-bold text-2xl text-text-primary mb-3 tracking-tight"
-              >
-                Qual o seu objetivo principal?
+            <div className="w-full animate-in fade-in slide-in-from-right-12 duration-700 ease-out">
+              <h1 className="text-3xl font-bold text-white tracking-tighter mb-4">
+                Foco Estratégico
               </h1>
-              <p className="text-text-secondary text-sm mb-8">
-                Isso nos ajudará a personalizar seus relatórios e sugestões da IA.
+              <p className="text-sm font-medium text-white/40 mb-10 leading-relaxed max-w-sm">
+                O KiNance personalizará seus insights de acordo com sua prioridade atual.
               </p>
 
-              <div
-                role="group"
-                aria-labelledby="objetivo-group-label"
-                className="flex flex-col gap-4 mb-10"
-              >
+              <div className="space-y-4 mb-10">
                 {OBJETIVO_OPTIONS.map((opt) => {
                   const Icon = opt.icon;
                   const isSelected = objetivo === opt.value;
@@ -250,153 +219,135 @@ export default function OnboardingPage() {
                       key={opt.value}
                       type="button"
                       onClick={() => setObjetivo(opt.value)}
-                      aria-pressed={isSelected}
-                      aria-label={opt.label}
-                      className={`flex items-center gap-5 p-5 rounded-2xl border text-left transition-all duration-300 backdrop-blur-md ${
+                      className={`w-full flex items-center gap-6 p-6 rounded-3xl border text-left transition-all duration-500 group relative overflow-hidden ${
                         isSelected
-                          ? `${opt.activeBorder} ${opt.activeBg} ${opt.activeShadow}`
-                          : "border-white/5 bg-white/[0.02] hover:bg-white/[0.05] hover:border-white/10"
+                          ? `bg-white/[0.03] border-white/20 ${opt.glowColor}`
+                          : "border-white/5 bg-white/[0.01] hover:bg-white/[0.04] hover:border-white/10"
                       }`}
                     >
                       <div
-                        className={`p-3 rounded-xl transition-all duration-300 flex-shrink-0 ${
+                        className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 border transition-all duration-500 ${
                           isSelected
-                            ? `${opt.activeIconBg} ${opt.activeIconColor} ${opt.activeIconShadow}`
-                            : "bg-black/20 text-text-muted"
+                            ? `bg-white text-black border-white`
+                            : "bg-white/[0.02] border-white/5 text-white/20 group-hover:text-white/40 shadow-inner"
                         }`}
                       >
-                        <Icon size={24} aria-hidden="true" />
+                        <Icon size={24} />
                       </div>
                       <div>
-                        <div
-                          className={`font-bold font-display text-base ${
-                            isSelected ? opt.activeColor : "text-text-primary"
-                          }`}
-                        >
+                        <div className={`text-base font-bold tracking-tight ${isSelected ? 'text-white' : 'text-white/60'}`}>
                           {opt.label}
                         </div>
-                        <div className="text-xs text-text-muted mt-0.5 leading-snug">
+                        <p className={`text-[13px] font-medium leading-relaxed mt-1 ${isSelected ? 'text-white/40' : 'text-white/20'}`}>
                           {opt.description}
-                        </div>
+                        </p>
                       </div>
+                      {isSelected && (
+                         <div className="absolute right-6 top-1/2 -translate-y-1/2">
+                            <CheckCircle2 size={24} className={opt.activeColor} />
+                         </div>
+                      )}
                     </button>
                   );
                 })}
               </div>
 
-              <div className="flex gap-3">
+              <div className="flex gap-4">
                 <button
                   type="button"
                   onClick={() => setStep(1)}
-                  className="py-5 px-6 rounded-2xl border border-white/10 text-text-muted hover:text-text-primary hover:border-white/20 hover:bg-white/5 transition-all font-semibold"
-                  aria-label="Voltar para o passo anterior"
+                  className="w-16 h-16 rounded-[1.5rem] bg-white/[0.02] border border-white/5 flex items-center justify-center text-white/20 hover:text-white hover:bg-white/5 transition-all duration-500 active:scale-95"
                 >
-                  Voltar
+                  <ChevronLeft size={24} />
                 </button>
                 <button
                   onClick={() => setStep(3)}
                   disabled={!canAdvanceStep2}
-                  className="flex-1 flex items-center justify-center gap-2 bg-[linear-gradient(135deg,var(--orange),var(--amber))] shadow-[0_4px_16px_rgba(229,89,29,0.3),inset_0_1px_0_rgba(255,255,255,0.3)] hover:shadow-[0_6px_24px_rgba(229,89,29,0.4),inset_0_1px_0_rgba(255,255,255,0.4)] hover:-translate-y-1 active:scale-[0.98] disabled:opacity-50 disabled:hover:translate-y-0 text-white font-display font-bold py-5 rounded-2xl transition-all text-lg"
+                  className="flex-1 flex items-center justify-center gap-3 bg-white text-black py-5 rounded-[1.5rem] font-bold text-sm uppercase tracking-[0.2em] transition-all duration-500 hover:shadow-[0_12px_32px_rgba(255,255,255,0.1)] hover:-translate-y-1 active:scale-95 disabled:opacity-20"
                 >
-                  Continuar <ArrowRight size={22} aria-hidden="true" />
+                  Confirmar Foco <ArrowRight size={20} />
                 </button>
               </div>
             </div>
           )}
 
-          {/* ── Step 3: Aporte mensal ──────────────────────────────────────── */}
+          {/* ── Step 3: Capital Flow ───────────────────────────────────────── */}
           {step === 3 && (
-            <div className="w-full animate-in fade-in slide-in-from-right-8 duration-700">
-              <h1 className="font-display font-bold text-2xl text-text-primary mb-3 tracking-tight">
-                Quanto você pretende investir por mês?
+            <div className="w-full animate-in fade-in slide-in-from-right-12 duration-700 ease-out">
+              <h1 className="text-3xl font-bold text-white tracking-tighter mb-4">
+                Fluxo de Capital
               </h1>
-              <p className="text-text-secondary text-sm mb-8 leading-relaxed">
-                Não se preocupe, você pode alterar isso depois.
-                <br />
-                Consistência é melhor que quantidade.
+              <p className="text-sm font-medium text-white/40 mb-12 leading-relaxed max-w-sm">
+                Defina sua meta de aporte mensal. Você poderá ajustar sua estratégia a qualquer momento.
               </p>
 
-              <div className="relative mb-4">
-                <span
-                  className="absolute left-6 top-1/2 -translate-y-1/2 text-text-disabled font-bold text-2xl"
-                  aria-hidden="true"
-                >
-                  R$
-                </span>
-                <label htmlFor="aporte-input" className="sr-only">
-                  Aporte mensal em reais
-                </label>
-                <input
-                  id="aporte-input"
-                  type="text"
-                  inputMode="decimal"
-                  value={aporteMensal}
-                  onChange={(e) => {
-                    setAporteMensal(maskCurrency(e.target.value));
-                    setSaveError(null);
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && canComplete && !saving) handleComplete();
-                  }}
-                  placeholder="0,00"
-                  autoFocus
-                  aria-invalid={!!saveError}
-                  aria-describedby={saveError ? "aporte-error" : undefined}
-                  className="w-full bg-black/20 border border-white/10 shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)] rounded-2xl pl-16 pr-6 py-6 text-brand-orange font-mono font-bold text-3xl focus:outline-none focus:border-brand-orange transition-all duration-300 placeholder:text-brand-orange/20"
-                />
-              </div>
-
-              {/* Erro de salvamento */}
-              {saveError && (
-                <div
-                  id="aporte-error"
-                  role="alert"
-                  className="mb-6 flex items-center gap-3 px-4 py-3 bg-danger/10 border border-danger/20 rounded-xl text-danger text-sm"
-                >
-                  <AlertTriangle size={15} aria-hidden="true" />
-                  {saveError}
+              <div className="space-y-12">
+                <div className="space-y-4">
+                  <label htmlFor="aporte-input" className="text-[10px] font-bold text-white/20 uppercase tracking-[0.2em] px-1 block">Meta de Aporte Mensal</label>
+                  <div className="relative group">
+                    <span className="absolute left-6 top-1/2 -translate-y-1/2 text-white/10 font-bold text-2xl select-none group-focus-within:text-orange-500 transition-colors">R$</span>
+                    <input
+                      id="aporte-input"
+                      type="text"
+                      inputMode="decimal"
+                      value={aporteMensal}
+                      onChange={(e) => {
+                        setAporteMensal(maskCurrency(e.target.value));
+                        setSaveError(null);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && canComplete && !saving) handleComplete();
+                      }}
+                      placeholder="0,00"
+                      autoFocus
+                      className="w-full bg-white/[0.02] border border-white/[0.05] rounded-[2rem] pl-20 pr-8 py-8 text-white font-mono font-bold text-4xl tracking-tighter focus:outline-none focus:border-white/20 focus:bg-white/[0.04] transition-all duration-500 placeholder:text-white/5"
+                    />
+                  </div>
                 </div>
-              )}
 
-              <div className="flex gap-3 mt-8">
-                <button
-                  type="button"
-                  onClick={() => setStep(2)}
-                  disabled={saving}
-                  className="py-6 px-6 rounded-2xl border border-white/10 text-text-muted hover:text-text-primary hover:border-white/20 hover:bg-white/5 transition-all font-semibold disabled:opacity-50"
-                  aria-label="Voltar para o passo anterior"
-                >
-                  Voltar
-                </button>
-                <button
-                  onClick={handleComplete}
-                  disabled={!canComplete || saving}
-                  className="flex-1 flex items-center justify-center gap-3 bg-[linear-gradient(135deg,var(--orange),var(--amber))] shadow-[0_8px_32px_rgba(229,89,29,0.3),inset_0_1px_0_rgba(255,255,255,0.4)] hover:shadow-[0_12px_40px_rgba(229,89,29,0.5),inset_0_1px_0_rgba(255,255,255,0.5)] hover:-translate-y-1 active:scale-[0.98] disabled:opacity-50 disabled:hover:translate-y-0 text-white font-display font-bold py-6 rounded-2xl transition-all text-xl"
-                >
-                  {saving ? (
-                    <>
-                      <span
-                        className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"
-                        aria-hidden="true"
-                      />
-                      Preparando seu dashboard...
-                    </>
-                  ) : (
-                    <>
-                      Começar minha jornada
-                      <CheckCircle2 size={24} aria-hidden="true" />
-                    </>
-                  )}
-                </button>
+                {saveError && (
+                  <div className="flex items-center gap-4 bg-red-500/10 border border-red-500/20 text-red-400 text-[11px] font-bold uppercase tracking-widest rounded-2xl p-5 animate-in slide-in-from-top-2">
+                    <AlertTriangle size={16} className="shrink-0" />
+                    {saveError}
+                  </div>
+                )}
+
+                <div className="flex gap-4">
+                  <button
+                    type="button"
+                    onClick={() => setStep(2)}
+                    disabled={saving}
+                    className="w-16 h-16 rounded-[1.5rem] bg-white/[0.02] border border-white/5 flex items-center justify-center text-white/20 hover:text-white hover:bg-white/5 transition-all duration-500 active:scale-95 disabled:opacity-20"
+                  >
+                    <ChevronLeft size={24} />
+                  </button>
+                  <button
+                    onClick={handleComplete}
+                    disabled={!canComplete || saving}
+                    className="flex-1 flex items-center justify-center gap-3 bg-orange-500 text-white py-5 rounded-[1.5rem] font-bold text-sm uppercase tracking-[0.2em] transition-all duration-500 hover:shadow-[0_12px_40px_rgba(249,115,22,0.3)] hover:-translate-y-1 active:scale-95 disabled:opacity-40 overflow-hidden"
+                  >
+                    {saving ? (
+                      <div className="flex items-center gap-3">
+                        <div className="w-5 h-5 border-3 border-white/20 border-t-white rounded-full animate-spin" />
+                        Finalizando...
+                      </div>
+                    ) : (
+                      <>
+                        Ativar Plataforma
+                        <CheckCircle2 size={22} />
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
             </div>
           )}
         </div>
 
-        {/* Indicador textual de passo */}
-        <p className="mt-6 text-text-disabled text-xs font-semibold uppercase tracking-widest" aria-hidden="true">
-          Passo {step} de 3
-        </p>
+        {/* Status Indicator */}
+        <div className="mt-10">
+           <p className="text-[10px] font-bold text-white/10 uppercase tracking-[0.5em]">Phase 0{step} / 03</p>
+        </div>
       </div>
     </div>
   );

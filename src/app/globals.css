@@ -1,45 +1,34 @@
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap');
 @import "tailwindcss";
 
 @theme {
   /* ── Brand Colors ───────────────────────────── */
-  --color-brand-orange: #e5591d;
-  --color-brand-orange-light: #f07040;
-  --color-brand-amber: #ffa43c;
+  --color-brand-orange: #f97316;
+  --color-brand-amber: #fbbf24;
 
   /* ── Linear Dark Palette ────────────────────── */
-  --color-bg-base: #050403;
-  --color-bg-panel: rgba(255, 255, 255, 0.02);
-  --color-bg-elevated: rgba(255, 255, 255, 0.04);
-  --color-bg-card: rgba(255, 255, 255, 0.03);
-  --color-bg-input: rgba(0, 0, 0, 0.25);
-
+  --color-bg-base: #0a0a0a;
+  
   /* ── Semantic ───────────────────────────────── */
-  --color-success: #4ade80;
-  --color-danger: #f87171;
-  --color-warning: #facc15;
-  --color-info: #60a5fa;
+  --color-success: #10b981;
+  --color-danger: #ef4444;
+  --color-warning: #f59e0b;
+  --color-info: #0ea5e9;
 
   /* ── Text ───────────────────────────────────── */
-  --color-text-white: #f5f0e8;
-  --color-text-primary: #e8e0d0;
-  --color-text-secondary: #b8a888;
-  --color-text-muted: #7a6a52;
-  --color-text-disabled: #4a3e2e;
-
-  /* ── Borders ────────────────────────────────── */
-  --color-border-subtle: rgba(255, 255, 255, 0.05);
-  --color-border-default: rgba(255, 255, 255, 0.09);
-  --color-border-strong: rgba(255, 255, 255, 0.15);
+  --color-text-primary: #ffffff;
+  --color-text-secondary: rgba(255, 255, 255, 0.6);
+  --color-text-muted: rgba(255, 255, 255, 0.4);
+  --color-text-disabled: rgba(255, 255, 255, 0.2);
 
   /* ── Typography ─────────────────────────────── */
-  --font-display: 'IBM Plex Sans', system-ui, sans-serif;
-  --font-body: 'IBM Plex Sans', system-ui, sans-serif;
-  --font-mono: 'IBM Plex Mono', 'Courier New', monospace;
+  --font-display: 'Inter', 'IBM Plex Sans', system-ui, sans-serif;
+  --font-body: 'Inter', 'IBM Plex Sans', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
 
   /* ── Shadows & Effects ──────────────────────── */
-  --shadow-glow: 0 0 32px rgba(229, 89, 29, 0.25);
-  --shadow-inner-light: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  --shadow-glow: 0 0 32px rgba(249, 115, 22, 0.25);
+  --shadow-inner-light: inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 @layer base {
@@ -50,28 +39,29 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     min-height: 100dvh;
+    letter-spacing: -0.01em;
   }
 
   /* Custom Selection */
   ::selection {
-    background: rgba(229, 89, 29, 0.25);
+    background: rgba(249, 115, 22, 0.3);
     color: #fff;
   }
 
   /* Minimalist Scrollbar */
   ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    width: 4px;
+    height: 4px;
   }
   ::-webkit-scrollbar-track {
     background: transparent;
   }
   ::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.05);
     border-radius: 10px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.1);
   }
 
   @keyframes wave {
@@ -84,59 +74,30 @@
     60% { transform: rotate(0.0deg) }
     100% { transform: rotate(0.0deg) }
   }
+
+  @keyframes shimmer {
+    0% { transform: translateX(-100%) }
+    100% { transform: translateX(100%) }
+  }
 }
 
 @layer utilities {
-  /* Estilo base para cartões e modais de vidro */
-  .glass {
-    background: linear-gradient(145deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
-    border: 1px solid var(--color-border-default);
-    box-shadow: var(--shadow-inner-light);
-  }
-
-  .glass-dark {
-    background: rgba(0, 0, 0, 0.4);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
-    border: 1px solid var(--color-border-subtle);
-  }
-
-  .text-shadow-glow {
-    text-shadow: 0 0 16px rgba(229, 89, 29, 0.5);
-  }
-
-  /* Overrides para tipografia prose */
-  .prose h3 {
-    color: var(--color-brand-orange) !important;
-    margin-top: 1.5rem !important;
-    margin-bottom: 0.75rem !important;
-    font-family: var(--font-display);
-    font-weight: 700;
-    letter-spacing: -0.01em;
-  }
-
-  .prose hr {
-    border-color: var(--color-border-default) !important;
-    margin: 2rem 0 !important;
-  }
-
-  /* Efeito de borda luminosa sutil lateral */
-  .border-glow-left {
-    position: relative;
-  }
-  .border-glow-left::before {
-    content: '';
-    position: absolute;
-    left: 0; top: 15%; bottom: 15%;
-    width: 2px;
-    background: var(--color-brand-orange);
-    box-shadow: 0 0 8px var(--color-brand-orange);
-    border-radius: 0 2px 2px 0;
+  .animate-shimmer {
+    animation: shimmer 2s infinite linear;
   }
 
   .animate-wave {
     animation: wave 2s infinite;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 20px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.1);
   }
 }

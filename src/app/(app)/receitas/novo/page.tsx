@@ -4,40 +4,38 @@ import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { collection, addDoc, doc, updateDoc } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
-import { ArrowRightLeft, ArrowLeft, AlertCircle, Pencil } from "lucide-react";
+import { TrendingUp, ArrowLeft, AlertCircle, Pencil, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 import { maskCurrency, parseCurrency } from "@/lib/utils";
 import { useQueryClient } from "@tanstack/react-query";
 import { useGetDoc } from "@/hooks/useFirebaseData";
+import { ReceitaCategoria } from "@/types/receita";
 
 // ─── constants ────────────────────────────────────────────────────────────────
 
 const TODAY = new Date().toISOString().split("T")[0];
 
-const CATEGORIAS = [
-  "Moradia",
-  "Alimentação",
-  "Transporte",
-  "Saúde",
-  "Educação",
-  "Lazer",
+const CATEGORIAS: ReceitaCategoria[] = [
+  "Salário",
+  "Freelance",
+  "Dividendos",
+  "Aluguel",
+  "Venda",
   "Outros",
-] as const;
-
-type Categoria = (typeof CATEGORIAS)[number];
+];
 
 // ─── types ────────────────────────────────────────────────────────────────────
 
-interface GastoDoc {
+interface ReceitaDoc {
   descricao: string;
   valor: number;
-  categoria: Categoria;
+  categoria: ReceitaCategoria;
   data: string;
 }
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
-function isGastoDoc(value: unknown): value is GastoDoc {
+function isReceitaDoc(value: unknown): value is ReceitaDoc {
   if (!value || typeof value !== "object") return false;
   const v = value as Record<string, unknown>;
   return (
@@ -65,7 +63,7 @@ function FieldError({ message }: FieldErrorProps) {
 
 // ─── inner form (uses useSearchParams — must be inside Suspense) ───────────────
 
-function NovoGastoForm() {
+function NovoReceitaForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
@@ -73,7 +71,7 @@ function NovoGastoForm() {
   const editId = searchParams.get("id");
   const isEditMode = Boolean(editId);
 
-  const { data: editData, isLoading: loadingEdit } = useGetDoc("gastos", editId);
+  const { data: editData, isLoading: loadingEdit } = useGetDoc("receitas", editId);
 
   // ── form state ──────────────────────────────────────────────────────────────
 
@@ -86,7 +84,7 @@ function NovoGastoForm() {
   const [valor, setValor] = useState("");
   const [valorError, setValorError] = useState<string | null>(null);
 
-  const [categoria, setCategoria] = useState<Categoria>(CATEGORIAS[0]);
+  const [categoria, setCategoria] = useState<ReceitaCategoria>(CATEGORIAS[0]);
   const [data, setData] = useState(TODAY);
 
   // ── populate on edit ────────────────────────────────────────────────────────
@@ -94,8 +92,8 @@ function NovoGastoForm() {
   useEffect(() => {
     if (!editData) return;
 
-    if (!isGastoDoc(editData)) {
-      console.warn("Formato inesperado do documento de gasto:", editData);
+    if (!isReceitaDoc(editData)) {
+      console.warn("Formato inesperado do documento de receita:", editData);
       return;
     }
 
@@ -106,8 +104,8 @@ function NovoGastoForm() {
       )
     );
     setCategoria(
-      CATEGORIAS.includes(editData.categoria as Categoria)
-        ? (editData.categoria as Categoria)
+      CATEGORIAS.includes(editData.categoria)
+        ? editData.categoria
         : CATEGORIAS[0]
     );
     setData(editData.data?.split("T")[0] ?? TODAY);
@@ -172,22 +170,22 @@ function NovoGastoForm() {
 
       if (editId) {
         await updateDoc(
-          doc(db, `users/${auth.currentUser.uid}/gastos`, editId),
+          doc(db, `users/${auth.currentUser.uid}/receitas`, editId),
           payload
         );
       } else {
-        await addDoc(collection(db, `users/${auth.currentUser.uid}/gastos`), {
+        await addDoc(collection(db, `users/${auth.currentUser.uid}/receitas`), {
           ...payload,
           criadoEm: new Date().toISOString(),
         });
       }
 
-      await queryClient.invalidateQueries({ queryKey: ["gastos"] });
-      router.push("/gastos");
+      await queryClient.invalidateQueries({ queryKey: ["receitas"] });
+      router.push("/receitas");
     } catch (err: unknown) {
       const message =
         err instanceof Error ? err.message : "Erro desconhecido. Tente novamente.";
-      console.error("Erro ao salvar gasto:", err);
+      console.error("Erro ao salvar receita:", err);
       setGlobalError(`Falha na operação: ${message}`);
       setLoading(false);
     }
@@ -199,9 +197,9 @@ function NovoGastoForm() {
     return (
       <div className="flex flex-col items-center justify-center h-[60vh] gap-4" aria-label="Carregando">
         <div className="w-12 h-12 rounded-2xl bg-white/[0.01] border border-white/5 flex items-center justify-center animate-pulse">
-           <div className="w-8 h-8 border-4 border-red-500/20 border-t-red-500 rounded-full animate-spin shadow-[0_0_20px_rgba(239,68,68,0.1)]" />
+           <div className="w-8 h-8 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin shadow-[0_0_20px_rgba(16,185,129,0.1)]" />
         </div>
-        <span className="text-[10px] font-bold uppercase tracking-widest text-white/20">Preparando Edição</span>
+        <span className="text-[10px] font-bold uppercase tracking-widest text-white/20">Preparando Entrada</span>
       </div>
     );
   }
@@ -214,7 +212,7 @@ function NovoGastoForm() {
       {/* Header */}
       <header className="mb-10 flex items-center gap-5 px-2">
         <Link
-          href="/gastos"
+          href="/receitas"
           aria-label="Voltar"
           className="group w-12 h-12 rounded-2xl bg-white/[0.03] border border-white/10 hover:bg-white/[0.06] hover:border-white/20 flex items-center justify-center text-white/40 hover:text-white transition-all duration-300 shadow-xl backdrop-blur-md"
         >
@@ -222,13 +220,13 @@ function NovoGastoForm() {
         </Link>
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-white/95 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-red-500/10 flex items-center justify-center border border-red-500/20 shadow-[0_0_15px_rgba(239,68,68,0.1)]">
-              {isEditMode ? <Pencil className="text-red-400" size={20} /> : <ArrowRightLeft className="text-red-400" size={22} />}
+            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20 shadow-[0_0_15px_rgba(52,211,153,0.1)]">
+              {isEditMode ? <Pencil className="text-emerald-400" size={20} /> : <TrendingUp className="text-emerald-400" size={22} />}
             </div>
-            {isEditMode ? "Editar Gasto" : "Novo Gasto"}
+            {isEditMode ? "Editar Receita" : "Nova Receita"}
           </h1>
           <p className="text-sm font-medium text-white/40 mt-1.5 ml-1">
-            {isEditMode ? "Atualize os detalhes da despesa." : "Registre uma nova saída no seu fluxo."}
+            {isEditMode ? "Atualize os detalhes da entrada financeira." : "Registre um novo ganho no seu fluxo de caixa."}
           </p>
         </div>
       </header>
@@ -247,7 +245,7 @@ function NovoGastoForm() {
               htmlFor="descricao"
               className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em] px-1 mb-3 block"
             >
-              O que você comprou?
+              Qual a origem da receita?
             </label>
             <input
               id="descricao"
@@ -261,7 +259,7 @@ function NovoGastoForm() {
                 if (descricaoError) validateDescricao(e.target.value);
               }}
               onBlur={() => validateDescricao(descricao)}
-              placeholder="Ex: Assinatura Netflix, Almoço"
+              placeholder="Ex: Salário, Projeto Freelance"
               aria-describedby={descricaoError ? "descricao-error" : undefined}
               aria-invalid={!!descricaoError}
               className={`w-full bg-white/[0.02] border rounded-2xl px-6 py-5 text-white font-medium text-lg tracking-tight focus:outline-none focus:bg-white/[0.04] transition-all duration-300 placeholder:text-white/10 ${
@@ -280,10 +278,10 @@ function NovoGastoForm() {
                 htmlFor="valor"
                 className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em] px-1 mb-3 block"
               >
-                Quanto custou?
+                Qual o valor recebido?
               </label>
               <div className="relative">
-                <span className="absolute left-6 top-1/2 -translate-y-1/2 text-red-400/40 font-mono font-bold text-xl select-none">
+                <span className="absolute left-6 top-1/2 -translate-y-1/2 text-emerald-400/40 font-mono font-bold text-xl select-none">
                   R$
                 </span>
                 <input
@@ -301,7 +299,7 @@ function NovoGastoForm() {
                   placeholder="0,00"
                   aria-describedby={valorError ? "valor-error" : undefined}
                   aria-invalid={!!valorError}
-                  className={`w-full bg-white/[0.02] border rounded-2xl pl-16 pr-6 py-5 text-red-400 font-mono text-2xl tracking-tight focus:outline-none focus:bg-white/[0.04] transition-all duration-300 placeholder:text-red-400/10 ${
+                  className={`w-full bg-white/[0.02] border rounded-2xl pl-16 pr-6 py-5 text-emerald-400 font-mono text-2xl tracking-tight focus:outline-none focus:bg-white/[0.04] transition-all duration-300 placeholder:text-emerald-400/10 ${
                     valorError
                       ? "border-red-500/30 focus:border-red-500/50"
                       : "border-white/5 focus:border-white/20"
@@ -317,13 +315,13 @@ function NovoGastoForm() {
                 htmlFor="categoria"
                 className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em] px-1 mb-3 block"
               >
-                Tipo de Gasto
+                Categoria
               </label>
               <div className="relative">
                 <select
                   id="categoria"
                   value={categoria}
-                  onChange={(e) => setCategoria(e.target.value as Categoria)}
+                  onChange={(e) => setCategoria(e.target.value as ReceitaCategoria)}
                   className="w-full bg-white/[0.02] border border-white/5 rounded-2xl px-6 py-5 text-white font-medium text-lg tracking-tight focus:outline-none focus:border-white/20 focus:bg-white/[0.04] transition-all duration-300 appearance-none cursor-pointer"
                 >
                   {CATEGORIAS.map((cat) => (
@@ -344,13 +342,13 @@ function NovoGastoForm() {
           {/* Data */}
           <div className="group">
             <label
-              htmlFor="data-gasto"
+              htmlFor="data-receita"
               className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em] px-1 mb-3 block"
             >
-              Data da Despesa
+              Data do Recebimento
             </label>
             <input
-              id="data-gasto"
+              id="data-receita"
               type="date"
               required
               max={TODAY}
@@ -380,19 +378,22 @@ function NovoGastoForm() {
             disabled={loading || !isFormReady}
             className="w-full relative group/btn overflow-hidden rounded-2xl py-5 transition-all duration-500 disabled:opacity-20 disabled:cursor-not-allowed active:scale-[0.98] shadow-xl"
           >
-            <div className={`absolute inset-0 bg-gradient-to-r from-red-600 to-rose-500 transition-opacity duration-500 ${isFormReady ? "opacity-100" : "opacity-40"}`} />
-            <div className="absolute inset-0 bg-red-400 opacity-0 group-hover/btn:opacity-20 transition-opacity blur-xl" />
+            <div className={`absolute inset-0 bg-gradient-to-r from-emerald-600 to-teal-500 transition-opacity duration-500 ${isFormReady ? "opacity-100" : "opacity-40"}`} />
+            <div className="absolute inset-0 bg-emerald-400 opacity-0 group-hover/btn:opacity-20 transition-opacity blur-xl" />
             
             <span className="relative z-10 flex items-center justify-center gap-3 text-white font-bold text-lg tracking-wide">
               {loading ? (
                 <>
                   <div className="w-5 h-5 border-3 border-white/20 border-t-white rounded-full animate-spin" />
-                  Processando...
+                  Sincronizando...
                 </>
               ) : isEditMode ? (
                 "Salvar Alterações"
               ) : (
-                "Confirmar Registro"
+                <>
+                  Confirmar Entrada
+                  <CheckCircle2 size={20} className="group-hover/btn:scale-110 transition-transform" />
+                </>
               )}
             </span>
           </button>
@@ -404,7 +405,7 @@ function NovoGastoForm() {
 
 // ─── page (Suspense obrigatório por causa do useSearchParams) ─────────────────
 
-export default function NovoGastoPage() {
+export default function NovoReceitaPage() {
   return (
     <Suspense
       fallback={
@@ -415,7 +416,7 @@ export default function NovoGastoPage() {
         </div>
       }
     >
-      <NovoGastoForm />
+      <NovoReceitaForm />
     </Suspense>
   );
 }
