@@ -13,7 +13,7 @@ export function useMetaActions() {
 
   // Criar ou Editar Meta
   const saveMeta = async (data: MetaFormData, id?: string) => {
-    if (!auth.currentUser) return;
+    if (!auth.currentUser) return false;
     setLoading(true);
     setError(null);
 
@@ -47,7 +47,7 @@ export function useMetaActions() {
 
   // Adicionar Aporte
   const addAporte = async (id: string, valor: number, valorAtualAntigo: number) => {
-    if (!auth.currentUser) return;
+    if (!auth.currentUser) return false;
     setLoading(true);
     setError(null);
 
@@ -68,7 +68,7 @@ export function useMetaActions() {
 
   // Deletar Meta
   const deleteMeta = async (id: string) => {
-    if (!auth.currentUser) return;
+    if (!auth.currentUser) return false;
     setLoading(true);
     setError(null);
 

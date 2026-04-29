@@ -6,7 +6,7 @@ import { calcularAporteMedioMensal } from "@/lib/utils";
 import { Sparkles, BrainCircuit, Target, AlertCircle } from "lucide-react";
 
 // Componentes Modularizados
-import { Meta } from "./types";
+import { Meta, MetaFormData } from "./types";
 import { useMetaActions } from "./hooks/useMetaActions";
 import { MetaCard } from "./components/MetaCard";
 import { MetaForm } from "./components/MetaForm";
@@ -40,17 +40,17 @@ export default function MetasPage() {
   const handleDeleteRequest = useCallback((meta: Meta) => setDeleteTarget(meta), []);
   const handleAporteRequest = useCallback((meta: Meta) => setAporteTarget(meta), []);
 
-  const handleSave = async (data: any, id?: string) => {
+  const handleSave = async (data: MetaFormData, id?: string): Promise<boolean> => {
     const success = await saveMeta(data, id);
     if (success) setEditingMeta(null);
-    return success;
+    return !!success;
   };
 
-  const handleAporteConfirm = async (valor: number) => {
+  const handleAporteConfirm = async (valor: number): Promise<boolean> => {
     if (!aporteTarget) return false;
     const success = await addAporte(aporteTarget.id, valor, aporteTarget.valorAtual);
     if (success) setAporteTarget(null);
-    return success;
+    return !!success;
   };
 
   const handleDeleteConfirm = async () => {

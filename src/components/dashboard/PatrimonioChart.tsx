@@ -71,11 +71,11 @@ function getCutoffDate(months: number): Date {
 
 // ─── Custom Tooltip ───────────────────────────────────────────────────────────
 
-function CustomTooltip({ active, payload, label }: TooltipProps<number, string>) {
+function CustomTooltip({ active, payload, label }: any) {
   if (!active || !payload?.length) return null;
 
-  const pat = payload.find((p) => p.dataKey === "patrimonio")?.value ?? 0;
-  const inv = payload.find((p) => p.dataKey === "investido")?.value ?? 0;
+  const pat = payload.find((p: any) => p.dataKey === "patrimonio")?.value ?? 0;
+  const inv = payload.find((p: any) => p.dataKey === "investido")?.value ?? 0;
   const rendimento = pat - inv;
   const pct = inv > 0 ? ((rendimento / inv) * 100).toFixed(2).replace(".", ",") : "0,00";
   const isPositive = rendimento >= 0;
